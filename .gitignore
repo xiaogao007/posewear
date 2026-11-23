@@ -14,6 +14,7 @@ node_modules/
 __pycache__/
 *.pyc
 # 测试输出
+output/
 tests/screenshots/
 *.log
 *.zip

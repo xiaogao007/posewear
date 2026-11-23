@@ -52,6 +52,26 @@
 | 豆包 Seedream | 火山方舟 API Key | doubao-seedream-4-0-250828 | 国内直连，默认经本站代理以解决跨域 |
 | 自定义中转 | Base URL + Key + 模型名 | 自填 | OpenAI 兼容；可选 edits（multipart）或 generations（JSON） |
 
+### 分辨率与渲染质量
+
+工作台的「画幅」「分辨率」「渲染质量」会保存在当前浏览器。默认使用标准分辨率；GPT Image 模型明确请求 `quality=medium`。高清、超清和高质量通常会增加费用与耗时，实际价格以服务商为准。不会自动更换模型。
+
+以 `gpt-image-2` 的竖 3:4 为例：
+
+| 档位 | 请求原生尺寸 |
+|---|---|
+| 标准 | 960×1280 |
+| 高清 | 1536×2048 |
+| 超清 | 1920×2560 |
+
+其他画幅按相同比例提供合法尺寸。自动画幅由模型决定宽高，GPT Image 的高清、超清需先选择明确画幅。尺寸遵循 [OpenAI 官方规则](https://developers.openai.com/api/docs/guides/image-generation)：两边为 16 的倍数，长边不超过 3840，总像素不超过 8,294,400；2880×3840 不符合像素上限。本功能不进行后期放大，也不会把 1K 放大图标成原生高清。
+
+`gpt-image-1` / mini / 1.5 仅提供标准尺寸与支持的画幅，可单独选低、中等或高质量；DALL·E 2 仅提供方形标准尺寸。Gemini 2.5 Flash Image 仅标准档，Gemini 3 Pro Image / 3.1 Flash Image 使用模型的 `imageConfig.imageSize`（1K / 2K / 4K），界面宽高标为文档参考值。Seedream 4.0 / 4.5 使用各自支持的像素尺寸，提供标准与高清。Gemini、Seedream 不发送 OpenAI 的 `quality`。未确认的 Seedream 模型使用服务商默认尺寸，未知兼容模型仅提供常用标准尺寸，高清不可用。
+
+自定义中转按模型及所选协议发送参数，需中转实际支持；edits 的图片字段重试及 generations 回退保留同一尺寸与质量，不因参数失败而自动降档。当前模型不支持已保存的画幅或档位时，生成按钮禁用并提示调整。`gpt-image-2` 不发送 `input_fidelity`。
+
+结果显示从图片文件读取的实际宽高、请求设置与尺寸不符提示，历史记录保留这些信息。单张下载与打包下载均保留服务商返回的原始字节。本站能核对返回尺寸，但无法证明中转内部是否进行过放大。
+
 ## 截图
 
 | 试穿工作台 | 深色模式 | 手机 |
@@ -121,8 +141,11 @@ npm install && npx playwright install chromium
 python3 -m http.server 8787 -d dist &
 node tests/v12.js      # 图库、收藏、灯箱、路由、移动端
 node tests/v13.js      # 试穿工作台全流程、深色模式、长文本
+npm run test:studio-resolution # 独立本机测试服务；分辨率、质量、回退、持久化和原文件下载，无需图库素材或真实 Key
 U=https://posewear.pages.dev node tests/v12.js   # 直接测线上
 ```
+
+分辨率测试也可用 `CHROME_PATH` 指定本机 Chrome 可执行文件，截图和结果写入 `output/playwright/studio-resolution/`。
 
 ## 目录结构
 

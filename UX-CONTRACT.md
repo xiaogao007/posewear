@@ -45,5 +45,11 @@ Registration deep links put the code in the URL fragment, immediately remove it,
 ## Dataset navigation
 Gallery retains its existing local filters and load-more behavior. Admin users: server paging, 20 rows per page, search reset to page 1, no empty stranded page. Invitations and permission mutations invalidate the displayed page.
 
+## Workbench output settings
+
+src/studio.js owns model-specific output capabilities; use the existing native selects and src/style.css tokens. Persist aspect ratio, resolution tier and GPT Image quality locally. Standard size and explicit medium quality are the defaults for GPT Image; higher settings state the cost/time tradeoff. Unsupported saved settings remain visible and block generation until corrected, without silently changing the model or tier. Freeze output settings during a run and preserve size/quality through protocol fallbacks. Gemini uses imageConfig; Seedream uses its own size capability; neither receives OpenAI quality. Unknown models expose conservative capabilities.
+
+Read actual returned dimensions from the image bytes and retain request/actual metadata in history. Flag exact-size mismatches; Gemini dimensions are documented estimates rather than exact pixel requests. Download original bytes for both individual files and ZIPs. Do not label locally resized images as native high resolution. Browser request mocks verify parameters, supported/unsupported states, persistence, history, keyboard, narrow/dark layout, cancellation and byte-exact downloads without paid model calls.
+
 ## Verification
 Required: Node auth integration tests, public/private build audit, source syntax checks, production build, premium static audit, real-browser anonymous/login/preferences/admin/revocation flows, keyboard and narrow viewport. Preserve the existing workbench regression where applicable. Test old public URLs, HEAD/Range, missing cookie, forbidden session, expiry, CSRF, forged flags, cache exclusions, and unavailable auth service.

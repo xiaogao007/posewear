@@ -335,6 +335,7 @@ button.empty0::before{content:"";flex:none;width:40px;height:40px;border-radius:
 .quick,.adv,.st-r .hist{background:var(--bg2);border-radius:16px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.05),0 0 0 1px rgba(0,0,0,.03);margin:0;border:0}
 .lab0{font-size:12px;font-weight:700;color:var(--mu);margin-bottom:8px}.quick .chips .chip{padding:6px 11px;font-size:12.5px}
 .q2{margin-top:10px}.q2 .row{margin:0;gap:10px;flex-wrap:nowrap}.q2 .lab{font-size:12.5px}.q2 select{padding:6px 28px 6px 12px;font-size:12.5px}
+.output-settings{display:grid;gap:8px;margin-top:10px}.output-settings .lab{display:grid;gap:4px;font-size:12.5px}.output-settings select{width:100%;min-width:0;font-size:12.5px}.output-settings .fine{margin:0;line-height:1.6;overflow-wrap:anywhere}.output-dimensions{margin:8px 0 0;line-height:1.6;overflow-wrap:anywhere}.output-dimensions.mismatch{font-weight:600;color:var(--tx)}
 .adv summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700}.adv summary::-webkit-details-marker{display:none}
 .adv summary::after{content:"";margin-left:auto;width:7px;height:7px;border-right:1.8px solid var(--mu);border-bottom:1.8px solid var(--mu);transform:rotate(45deg) translateY(-2px);transition:transform .2s}.adv[open] summary::after{transform:rotate(-135deg)}
 .adv summary small{font-size:11.5px;color:var(--mu);font-weight:400}.adv-b{margin-top:10px}.adv-b .mt{margin:0 0 4px}.adv-b textarea{font-size:12.5px}#wbPrompt{max-height:180px}
