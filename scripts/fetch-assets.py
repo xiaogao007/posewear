@@ -59,16 +59,16 @@ def meta(lib):
     os.makedirs(d, exist_ok=True)
     if lib in ('pose', 'costume'):
         html = get(base).decode('utf-8')
-        open(os.path.join(d, 'index.html'), 'w').write(html)
+        open(os.path.join(d, 'index.html'), 'w', encoding='utf-8').write(html)
         data = inline_data(html)
         if 'D' not in data:
             sys.exit(f'{lib}: 页面结构可能已变化，没找到数据')
-        json.dump(data, open(os.path.join(d, 'data.json'), 'w'), ensure_ascii=False)
-        keys = {'pose': ['サムネ', '原寸'], 'costume': ['画像', '原寸']}[lib]
-        return [x[k] for x in data['D'] for k in keys if x.get(k)]
+        json.dump(data, open(os.path.join(d, 'data.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+        keys = {'pose': ['サムネ', '原寸'], 'costume': ['サムネ', '画像', '原寸']}[lib]
+        return list(dict.fromkeys(x[k] for x in data['D'] for k in keys if x.get(k)))
     for f in ('images.js', 'ranking.js'):
         open(os.path.join(d, f), 'wb').write(get(base + 'data/' + f))
-    t = open(os.path.join(d, 'images.js')).read()
+    t = open(os.path.join(d, 'images.js'), encoding='utf-8').read()
     items = json.loads(t[t.index('['):t.rindex(']') + 1])
     return [x[k] for x in items for k in ('thumb', 'full') if x.get(k)]
 

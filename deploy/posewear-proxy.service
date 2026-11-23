@@ -1,0 +1,24 @@
+[Unit]
+Description=PoseWear image API proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=true
+WorkingDirectory=/opt/posewear/current
+ExecStart=/usr/local/bin/node /opt/posewear/current/server/proxy.cjs
+Environment=NODE_ENV=production
+Environment=PORT=8790
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

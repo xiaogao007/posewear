@@ -1,0 +1,2 @@
+'use strict';
+window.PWFeedback={toast(text,undo){const node=document.querySelector('#toast');if(!node)return;node.textContent=text;if(undo){const button=document.createElement('button');button.textContent='撤销';button.onclick=()=>{node.classList.remove('on','act');undo()};node.append(button)}node.classList.toggle('act',Boolean(undo));node.classList.remove('on');void node.offsetWidth;node.classList.add('on');clearTimeout(node._t);node._t=setTimeout(()=>node.classList.remove('on','act'),undo?4500:1800)}};

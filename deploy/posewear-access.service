@@ -1,0 +1,29 @@
+[Unit]
+Description=PoseWear account and resource authorization
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=true
+SupplementaryGroups=caddy
+StateDirectory=posewear-auth
+StateDirectoryMode=0700
+WorkingDirectory=/opt/posewear/current
+ExecStart=/usr/local/bin/node /opt/posewear/current/server/access.mjs
+Environment=NODE_ENV=production
+Environment=POSEWEAR_SITE=https://posewear.xiaogao.xyz
+Environment=POSEWEAR_PRIVATE=/opt/posewear/current/private
+Environment=PORT=8792
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

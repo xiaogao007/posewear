@@ -1,0 +1,10 @@
+{
+  "profile": "product-admin",
+  "canonicalMap": "UX-CONTRACT.md",
+  "sourceRoots": ["src"],
+  "ownership": {"Select/Listbox": "native", "Form": "src/access.js", "Scrollbar": "src/style.css", "Toast": "APP.toast", "CRUD": "src/access.js"},
+  "requiredCapabilities": ["Select/Listbox", "Form", "Scrollbar", "Toast", "CRUD"],
+  "requiredCommands": ["build", "auth"],
+  "commands": {"build": "npm run build", "auth": "npm run test:access"},
+  "evidence": {"crudFullFlow": "tests/access.test.mjs", "failurePaths": "tests/access.test.mjs"}
+}

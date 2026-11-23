@@ -60,7 +60,7 @@
 
 ## 快速开始
 
-需要 Python 3.9+ 和 Pillow；测试与部署另外需要 Node.js 18+。
+需要 Python 3.9+ 和 Pillow；当前锁定的测试与部署依赖需要 Node.js 22.12+。
 
 ```bash
 git clone https://github.com/atuizz/posewear.git && cd posewear
@@ -80,6 +80,22 @@ python3 -m http.server 8787 -d dist
 |---|---|---|
 | `POSEWEAR_RAW` | 原始素材目录 | `assets-raw` |
 | `POSEWEAR_SITE` | 站点地址，用于 sitemap 和分享链接 | `https://posewear.pages.dev` |
+
+### Windows 本机启动
+
+安装好 Python、Node.js 和 Git 后，在项目目录运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1
+```
+
+脚本会准备项目内的 Python 虚拟环境、安装依赖，在首次启动时下载完整素材并构建，随后启动包含 `/api/proxy` 的本地服务。打开 http://localhost:8787；按 Ctrl+C 停止。素材下载量较大，已下载的文件会保留，重新执行会跳过。
+
+修改源码后加 `-Rebuild`；需要补全素材时加 `-FetchAssets`；端口可用 `-Port 8789` 指定。运行状态和日志保存在项目的 `.local/` 和 `.wrangler/`，不提交到仓库。AI 生成需要在网页设置中填入自己的服务商和 API Key。
+
+本次配置的后台进程记录在 `.local/server-process.json`；可用 `powershell -NoProfile -ExecutionPolicy Bypass -File .\stop-local.ps1` 停止这组进程。脚本会先校验进程身份。手动在终端启动的服务用 Ctrl+C 停止。
+
+部署到 Linux 云服务器时，需要同时承载 `dist/` 静态文件和 `/api/proxy`。`server/proxy.cjs` 提供 Node.js 生产运行适配，复用原代理逻辑，并在建立连接时校验 DNS、阻止内网目标和服务器元数据地址。生产依赖可用 `npm ci --omit=dev` 安装。`deploy/` 提供当前服务器的构建脚本、systemd 服务和 Caddy 模板；`POSEWEAR_SITE` 应设为正式域名后重新构建。素材来源和作者声明需保留。
 
 ## 部署
 
@@ -155,6 +171,32 @@ Key 只存在你浏览器的 localStorage 里，可在设置里清除。默认�
 </details>
 
 ## 路线图
+
+### 自建服务器：账号与受限资源（access-v1）
+
+此版本普通姿势、服装、人像图库仍可匿名使用。深度姿势整库与成人向参考需要同时满足：站点开关开启、账号拥有 `content.adult.view`、已登录，且当前会话中主动确认开启。入口位于「更多 → 内容偏好」；只有获授权账号显示该选项，深度姿势菜单也随受限模式开启而出现。`users.permissions.manage` 用于账号邀请与内容查看权限管理。
+
+- 运行环境：Node.js 24.15+，Python/Pillow 用于离线构建；`npm ci` 后执行 `npm run build`、`npm run dev`。Windows 也可运行 `start-local.ps1`。
+- `dist/` 仅包含公开内容；`private/` 必须位于站点根目录之外。生产使用 `deploy/posewear.caddy.in` 的逐请求鉴权规则，不能只用静态 Pages 部署此版本。
+- 首次启动的初始化码存储在服务的状态目录 `bootstrap-code` 文件中。通过「更多 → 登录 → 初始化管理员」设置自己的邮箱和密码；完成后初始化码立即作废。不会预置管理员密码。
+- 管理员生成绑定邮箱、24 小时有效、单次使用的邀请码。新账号默认没有成人素材查看权限；邀请时可明确勾选授权。账号管理可随时授予、撤销或全站关闭。
+- 生产 SQLite、签名密钥与审计记录保存在 systemd `StateDirectory=posewear-auth`，独立于发布目录；不要删除或仅备份单个正在写入的 SQLite 主文件。服务同时使用 WAL/SHM。不要把状态目录、私有资源、初始化码加入 Git、Web 根目录或公开备份。
+- 更新请在新的 release 目录构建并切换软链接，不要在正在对外服务的 `dist` 内构建。构建过程会临时恢复图片缓存。
+- 安全验证：`npm run test:access`，`python -X utf8 tests/access-build.py`。
+- 本站无法撤回用户已下载的文件，也无法控制原始公开图库。受限深度图片在本站鉴权后转发；原站的公开性不受本站权限影响。此版的年龄确认是用户自我声明。
+
+界面约定见 `DESIGN.md` / `UX-CONTRACT.md`，权限边界见 `ACCESS-POLICY.md`。现有静态审计器仅识别内联 onclick，会把此项目 CSP 下的外部 JS 绑定误报为无动作按钮；应保留原始审计结果，并结合实际绑定和浏览器操作核实，不能用添加内联脚本的方式消除误报。
+
+### 公众号引流与自动发码（access-v2）
+
+公开领取页位于 `/invite/`，使用提供的「404星球的猫」二维码，默认回复关键词「邀请码」。后台入口：更多 → 账号管理 → 公众号自动发码设置。
+
+1. 填写公众号 AppID、服务器 Token（16–32 位字母数字）和 EncodingAESKey（43 位）；原始 ID 可选。无需 AppSecret。密钥留空表示保留现有值，读取配置不会返回密钥。
+2. 选择是否开启自动发放、领取人数上限（0 不限），以及新邀请码是否授予 18+ 查看权限。默认不自动授予查看权限，永不自动授予管理权限。
+3. 在微信公众平台服务器配置中填入 `https://posewear.xiaogao.xyz/api/wechat/callback` 和相同 Token/AESKey，消息加解密选择「安全模式」，由公众号所有者完成验证和启用。未通过验证前，引流页显示领取尚未开放。
+4. 用户回复关键词后，服务器被动回复邀请码和带自动填码的注册链接。每个微信只保留一个当前有效码；重复消息不会多发码，已注册后不再发新码，未使用的过期码可重新领取。
+
+仅保存微信标识的哈希以防重复领取，不保存 OpenID 明文或聊天正文。注册链接使用 fragment 并由页面立即移除；邀请码不进入请求查询参数、本机存储或访问日志。暂停发放不撤销已发有效码。接入说明与参数以公众号后台和 [微信接入文档](https://developers.weixin.qq.com/doc/offiaccount/Basic_Information/Access_Overview.html) 为准；消息加解密使用 [wechat-crypto](https://github.com/node-webot/wechat-crypto)。
 
 - [ ] 更多服务商与模型预设
 - [ ] 生成记录导出

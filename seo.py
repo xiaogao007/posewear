@@ -2,7 +2,7 @@
 import datetime,time
 TODAY=datetime.date.today().isoformat()
 MT=lambda p:datetime.date.fromtimestamp(os.path.getmtime(p)).isoformat()
-LM={'pose':MT(f'{R}/pose/data.json'),'costume':MT(f'{R}/costume/data.json'),'portrait':MT(f'{R}/portrait/data.json')}
+LM={'pose':MT(f'{R}/pose/data.json'),'costume':MT(f'{R}/costume/data.json'),'portrait':MT(f'{R}/portrait/images.js')}
 for d in ['en','tag']:
   if os.path.exists(f'{D}/{d}'): shutil.rmtree(f'{D}/{d}')
 if not os.path.exists('indexnow.key'):
@@ -205,7 +205,7 @@ body=f'''<div class="wrap"><h1>Pose, outfit and portrait references with prompts
 W('/en/',shell('en','/','PoseWear – Pose & Outfit Reference Library with AI Prompts and Online Try-On',en_desc,body,ENLD))
 add('pages','/',TODAY)
 # ---- 中文首页：标题、描述、真实数字、前 N 项静态卡片、JSON-LD、hreflang ----
-HC=dict(pose=len(SP),ang=NA_PUB,cos=len(SC),por=len(SR));HA=dict(pose=len(poses),ang=NA,cos=len(cos),por=len(pors))  # 首页计数唯一来源；改公开数：HC=dict(pose=len(SP),ang=NA_PUB,cos=len(SC),por=len(SR))
+HC=dict(pose=len(SP),ang=NA_PUB,cos=len(SC),por=len(SR));HA=HC.copy()  # 首页计数唯一来源；改公开数：HC=dict(pose=len(SP),ang=NA_PUB,cos=len(SC),por=len(SR))
 zh_desc=f"衣姿 PoseWear：{HC['pose']} 组姿势（{HC['ang']:,} 张角度图）、{HC['cos']:,} 套服装、{HC['por']:,} 张人像参考图，附中英文提示词，可上传照片在线 AI 试穿。免费，无需注册。"
 zhttl='衣姿 PoseWear · 姿势、服装、人像参考图库 | 中英文提示词 + 在线 AI 试穿'
 idx=open(f'{D}/index.html').read()

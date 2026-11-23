@@ -1,9 +1,13 @@
 # 构建产物与素材（素材不随仓库分发，见 scripts/fetch-assets.py）
 dist/
+private/
+premium-audit.json
 assets-raw/
 raw/
 # 依赖与本地状态
 node_modules/
+.venv/
+.local/
 .wrangler/
 .dev.vars
 .env*

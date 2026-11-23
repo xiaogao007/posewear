@@ -1,0 +1,63 @@
+__DOMAIN__ {
+    encode zstd gzip
+    header {
+        Content-Security-Policy "__CSP__"
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        X-Frame-Options DENY
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        Cross-Origin-Opener-Policy same-origin
+    }
+    @privateFiles path /_headers /.build-ready
+    respond @privateFiles 404
+    import __ROOT__/private/retired.caddy
+    @internal path /internal/* /private/*
+    respond @internal 404
+    @accounts path /api/me /api/auth/* /api/setup/* /api/invites/* /api/invite-info /api/wechat/* /api/session/* /api/account/* /api/catalog/* /api/admin/*
+    handle @accounts {
+        reverse_proxy 127.0.0.1:8792 {
+            header_up X-Real-IP {remote_host}
+        }
+    }
+    handle /restricted/media/* {
+        route {
+            header Cache-Control "private, no-store"
+            header X-Robots-Tag "noindex, noarchive"
+            forward_auth 127.0.0.1:8792 {
+                uri /internal/authorize
+            }
+            uri strip_prefix /restricted/media
+            root * __ROOT__/private/media
+            file_server
+        }
+    }
+    handle /restricted/remote/* {
+        header Cache-Control "private, no-store"
+        header X-Robots-Tag "noindex, noarchive"
+        reverse_proxy 127.0.0.1:8792 {
+            header_up X-Real-IP {remote_host}
+        }
+    }
+    handle /restricted/* {
+        respond 404
+    }
+    handle /api/proxy {
+        reverse_proxy 127.0.0.1:8790 {
+            header_up X-Real-IP {remote_host}
+        }
+    }
+    handle {
+        root * __ROOT__/dist
+        @immutable path /assets/* /p/* /c/* /r/* /o/*
+        header @immutable Cache-Control "public, max-age=31536000, immutable"
+        @fresh path / /index.html /sw.js
+        header @fresh Cache-Control "no-cache"
+        file_server
+    }
+    handle_errors {
+        root * __ROOT__/dist
+        rewrite * /404.html
+        file_server
+    }
+}

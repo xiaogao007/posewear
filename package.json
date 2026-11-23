@@ -4,13 +4,21 @@
   "description": "衣姿 PoseWear：姿势、服装、人像参考图库与 AI 试穿工作台",
   "license": "MIT",
   "scripts": {
-    "build": "python3 build.py",
-    "serve": "python3 -m http.server 8787 -d dist",
+    "build": "node scripts/build.cjs",
+    "dev": "node server/local.mjs",
+    "serve": "node server/local.mjs",
+    "test:access": "node --test tests/access.test.mjs",
     "test": "node tests/v12.js && node tests/v13.js",
     "deploy": "wrangler pages deploy dist --project-name posewear"
   },
   "devDependencies": {
     "playwright": "^1.48.0",
     "wrangler": "^4.0.0"
+  },
+  "dependencies": {
+    "better-auth": "^1.7.25",
+    "fast-xml-parser": "^5.12.1",
+    "undici": "^7.30.2",
+    "wechat-crypto": "^0.0.2"
   }
 }

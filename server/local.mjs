@@ -1,0 +1,12 @@
+import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import {createAccessService} from './access.mjs';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const index=process.argv.indexOf('--port'),port=Number(index>=0?process.argv[index+1]:process.env.PORT||8787),proxyPort=Number(process.env.POSEWEAR_PROXY_PORT||port+1);
+const proxy=spawn(process.execPath,[path.join(root,'server/proxy.cjs')],{env:{...process.env,PORT:String(proxyPort)},stdio:'inherit',windowsHide:true});
+proxy.on('error',error=>{console.error('Could not start image proxy:',error.message);process.exit(1);});
+const service=await createAccessService({port,origin:`http://localhost:${port}`,servePublic:true,aiProxyUrl:`http://127.0.0.1:${proxyPort}`});
+console.log(`PoseWear ready: http://localhost:${service.port}`);
+console.log('First owner setup code is stored privately in .local/auth/bootstrap-code.');
+for(const signal of ['SIGTERM','SIGINT'])process.once(signal,async()=>{proxy.kill();await service.close();process.exit(0);});

@@ -1,10 +1,11 @@
-import json,os,shutil,subprocess,depthpack
+import json,os,shutil,subprocess,depthpack,access_build
 from costume_text import gen2
 import hashlib,re,html as H
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from PIL import Image
 # 素材目录：默认 ./assets-raw，可用环境变量 POSEWEAR_RAW 指定（见 scripts/fetch-assets.py）
 R=os.environ.get('POSEWEAR_RAW','assets-raw'); D='dist'
+if os.path.exists(f'{D}/.build-ready'): os.remove(f'{D}/.build-ready')
 LINE={'全身1人・セクシー系':('全身·性感','full body, solo, sexy'),'全身1人・標準系':('全身·标准','full body, solo'),'上半身1人':('上半身','upper body, solo'),'2人絡み':('双人互动','two people, couple')}
 CAT={'寝そべり':'躺卧','セクシー・露骨寄り系':'性感·大胆','立ち':'站姿','座り':'坐姿','かわいい系':'可爱','胸寄せ・谷間強調系':'挤胸·乳沟','膝立ち・四つん這い':'跪立·趴姿','特殊':'特殊','正常位':'正面位','膝立ち':'跪立','横座り・女の子座り':'侧坐·鸭子坐','後背位':'后入位','背面座位':'背面坐位','しゃがみ':'蹲姿','前かがみ':'前倾','顔寄せ系':'贴脸','騎乗位':'骑乘位','立位':'立位','立位密着':'立位贴身','のけぞり・反り':'后仰','ひねり':'扭身','側位':'侧位','座位':'坐位','対面座位':'对面坐位','座位密着':'坐位贴身','密着':'贴身'}
 ANG={'正面':('正面','front view'),'上から':('俯拍','high angle, from above'),'下から':('仰拍','low angle, from below'),'横':('侧面','side view'),'斜め':('斜侧','three-quarter view')}
@@ -91,10 +92,14 @@ for x in ['p/t','c/m','o/p','o/c','r/t','r/m','o/r']: os.makedirs(f'{D}/{x}',exi
 if os.path.exists(f'{D}/p/t'):
   for f in os.listdir(f'{D}/p/t'):
     if f.endswith('.jpg'): os.remove(f'{D}/p/t/{f}')
-with ProcessPoolExecutor() as ex: list(ex.map(cv,pd)); list(ex.map(cm,cd)); list(ex.map(cr,rd))
+access_build.restore_cache(D)
+with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as ex: list(ex.map(cv,pd)); list(ex.map(cm,cd)); list(ex.map(cr,rd))
 # 深度姿势：只解析素材包里的文本，热链包不复制图片（见 depthpack.py）
 _dc=depthpack.catalog(); DJ=J(_dc['payload']); DEPTH_ORIGINS=_dc['origins']
 for src,rel in _dc['copies']:
   dest=f'{D}/{rel}'; os.makedirs(os.path.dirname(dest),exist_ok=True); shutil.copyfile(src,dest)
+_public=access_build.prepare(D,PL,cos,pors,_dc)
+PJ=J(_public['pose']);CJ=J(_public['costume']);RJ=J(_public['portrait']);DJ=J(_public['depth'])
 exec(open('post.py').read())
+open(f'{D}/.build-ready','w',encoding='utf-8').write(SITE+'\n')
 print(len(poses),len(cos),len(_dc['payload']['items']))
