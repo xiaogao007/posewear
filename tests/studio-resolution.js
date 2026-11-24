@@ -89,6 +89,23 @@ const server=http.createServer((req,res)=>{
    passed('unsupported model/aspect/tier blocks generation without silently downgrading; legacy quality is model specific');
    await context.close();
   }
+  for(const model of ['gpt-image-2.6-sunburst','gpt-image-2.6-flare','gpt-image-2.5-sunburst','gpt-image-2.5-flare'])for(const adapter of [{prov:'openai'},{prov:'custom',proto:'edits'},{prov:'custom',proto:'json'}]){
+   const {context,page,state}=await setup(adapter.prov,model,adapter);
+   assert.equal(await page.inputValue('#wbAR'),'auto');assert.equal(await page.locator('#wbGo').isEnabled(),true);await go(page);
+   assert.equal(state.hits.at(-1).body.model,model);assert.equal(state.hits.at(-1).body.size,'auto');assert.equal(state.hits.at(-1).body.quality,'medium');
+   for(const quality of ['xhigh','max','auto']){await choose(page,'3:4','ultra',quality);await go(page);const body=state.hits.at(-1).body;assert.equal(body.model,model);assert.equal(body.size,'1920x2560');assert.equal(body.quality,quality);assert.equal(body.input_fidelity,undefined);}
+   if(model==='gpt-image-2.6-sunburst'){
+    await page.selectOption('#wbQuality','max');await page.reload();await page.waitForFunction(()=>window.WB&&document.querySelector('#wbResolution').options.length);
+    assert.equal(await page.inputValue('#wbQuality'),'max');await switchModel(page,'gpt-image-2');
+    assert.equal(await page.inputValue('#wbQuality'),'max');assert.equal(await page.locator('#wbQuality option[value=max]').isDisabled(),true);assert.equal(await page.locator('#wbGo').isDisabled(),true);assert.equal(await page.getAttribute('#wbQuality','aria-invalid'),'true');assert.equal(await page.getAttribute('#wbResolution','aria-invalid'),'false');assert.match(await page.textContent('#wbOutputHelp'),/不支持已选的渲染质量/);
+   }
+   passed(model+' '+adapter.prov+'/'+(adapter.proto||'edits')+' supports automatic/native sizes and model-specific quality without silent substitution');await context.close();
+  }
+  {
+   const {context,page,state}=await setup('custom','gpt-image-2.6-sunburst');await choose(page,'3:4','hd','xhigh');state.responses=[failure('edits route not found',404)];await go(page);
+   assert.equal(state.hits.length,2);assert.ok(state.hits.every(h=>h.body.model==='gpt-image-2.6-sunburst'&&h.body.size==='1536x2048'&&h.body.quality==='xhigh'&&h.body.input_fidelity===undefined));
+   passed('Sunburst edits-to-JSON fallback preserves the chosen model, native size and xhigh quality');await context.close();
+  }
   {
    const {context,page,state}=await setup('custom','gpt-image-2');await choose(page,'3:4','ultra','high');
    state.responses=[failure('Missing image field')];await go(page);assert.equal(state.hits.length,2);assert.equal(state.hits[1].body.image,'[file]');

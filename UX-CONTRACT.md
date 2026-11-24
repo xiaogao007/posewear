@@ -51,5 +51,7 @@ src/studio.js owns model-specific output capabilities; use the existing native s
 
 Read actual returned dimensions from the image bytes and retain request/actual metadata in history. Flag exact-size mismatches; Gemini dimensions are documented estimates rather than exact pixel requests. Download original bytes for both individual files and ZIPs. Do not label locally resized images as native high resolution. Browser request mocks verify parameters, supported/unsupported states, persistence, history, keyboard, narrow/dark layout, cancellation and byte-exact downloads without paid model calls.
 
+Sunburst/Flare in GPT Image 2.5 and 2.6 use the documented native size capability and include xhigh/max/auto quality. Keep quality capabilities per model; preserve unsupported saved quality values visibly and block generation until corrected, with the quality field marked invalid. Model changes must not silently substitute rendering quality.
+
 ## Verification
 Required: Node auth integration tests, public/private build audit, source syntax checks, production build, premium static audit, real-browser anonymous/login/preferences/admin/revocation flows, keyboard and narrow viewport. Preserve the existing workbench regression where applicable. Test old public URLs, HEAD/Range, missing cookie, forbidden session, expiry, CSRF, forged flags, cache exclusions, and unavailable auth service.

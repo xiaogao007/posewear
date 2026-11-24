@@ -66,6 +66,8 @@
 
 其他画幅按相同比例提供合法尺寸。自动画幅由模型决定宽高，GPT Image 的高清、超清需先选择明确画幅。尺寸遵循 [OpenAI 官方规则](https://developers.openai.com/api/docs/guides/image-generation)：两边为 16 的倍数，长边不超过 3840，总像素不超过 8,294,400；2880×3840 不符合像素上限。本功能不进行后期放大，也不会把 1K 放大图标成原生高清。
 
+`gpt-image-2.6-sunburst` / `gpt-image-2.6-flare` 及 2.5 的 Sunburst / Flare 支持自动画幅、以上原生尺寸档位，以及低、中等、高、极高（`xhigh`）、最高（`max`）、自动（`auto`）质量。工作台仍默认中等质量；更高质量可能增加费用与耗时。2.5 超过 2560×1440 的分辨率属于实验性支持。切回不支持已选质量的模型时，保留选择并提示调整，不静默替换质量。
+
 `gpt-image-1` / mini / 1.5 仅提供标准尺寸与支持的画幅，可单独选低、中等或高质量；DALL·E 2 仅提供方形标准尺寸。Gemini 2.5 Flash Image 仅标准档，Gemini 3 Pro Image / 3.1 Flash Image 使用模型的 `imageConfig.imageSize`（1K / 2K / 4K），界面宽高标为文档参考值。Seedream 4.0 / 4.5 使用各自支持的像素尺寸，提供标准与高清。Gemini、Seedream 不发送 OpenAI 的 `quality`。未确认的 Seedream 模型使用服务商默认尺寸，未知兼容模型仅提供常用标准尺寸，高清不可用。
 
 自定义中转按模型及所选协议发送参数，需中转实际支持；edits 的图片字段重试及 generations 回退保留同一尺寸与质量，不因参数失败而自动降档。当前模型不支持已保存的画幅或档位时，生成按钮禁用并提示调整。`gpt-image-2` 不发送 `input_fidelity`。

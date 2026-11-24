@@ -2,10 +2,10 @@
 (()=>{const A=window.APP;if(!A)return;const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),esc=A.esc,toast=A.toast;
 const LS=k=>{try{return JSON.parse(localStorage[k]||'null')}catch(e){return null}},SV=(k,v)=>{try{localStorage[k]=JSON.stringify(v)}catch(e){}};
 // ---------- 服务商 ----------
-const PROV={openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-image-1',models:['gpt-image-1','gpt-image-1-mini','gpt-image-2','dall-e-2']},
+const PROV={openai:{name:'OpenAI',base:'https://api.openai.com/v1',model:'gpt-image-1',models:['gpt-image-1','gpt-image-1-mini','gpt-image-2','gpt-image-2.6-sunburst','gpt-image-2.6-flare','dall-e-2']},
  gemini:{name:'Gemini',base:'https://generativelanguage.googleapis.com/v1beta',model:'gemini-2.5-flash-image',models:['gemini-2.5-flash-image','gemini-3-pro-image-preview','gemini-3.1-flash-image']},
  seedream:{name:'豆包 Seedream',base:'https://ark.cn-beijing.volces.com/api/v3',model:'doubao-seedream-4-0-250828',models:['doubao-seedream-4-0-250828','doubao-seedream-4-5-251128','doubao-seedream-5-0-flash-260915']},
- custom:{name:'自定义中转',base:'',model:'gpt-image-1',models:['gpt-image-1','gpt-image-2','gemini-2.5-flash-image','flux-kontext-pro','qwen-image-edit','doubao-seedream-4-0-250828']}};
+ custom:{name:'自定义中转',base:'',model:'gpt-image-1',models:['gpt-image-1','gpt-image-2','gpt-image-2.6-sunburst','gpt-image-2.6-flare','gemini-2.5-flash-image','flux-kontext-pro','qwen-image-edit','doubao-seedream-4-0-250828']}};
 const cfg=Object.assign({prov:'openai',base:'',key:'',model:'',field:'image[]',proto:'edits',proxy:false},LS('wbCfg')||{});
 // ---------- 预设 ----------
 const CHARS=[['asia','东亚女性','an adult East Asian woman in her mid-20s, long black hair, natural makeup, slim build','一位二十多岁的成年东亚女性，黑色长发，自然淡妆，身材纤细'],
@@ -30,6 +30,8 @@ const proto=()=>cfg.prov=='openai'?'edits':cfg.prov=='custom'?cfg.proto:cfg.prov
 // ai.google.dev/gemini-api/docs/image-generation
 // docs.volcengine.com/docs/ark/image-generation-api
 const OUTPUT_TIERS=[['standard','标准'],['hd','高清'],['ultra','超清']];
+const GPT_QUALITIES=['low','medium','high'],MODERN_GPT_QUALITIES=[...GPT_QUALITIES,'xhigh','max','auto'];
+const QUALITY_OPTIONS=[['medium','中等（默认）'],['high','高（更多细节）'],['low','低（节省费用）'],['xhigh','极高（更多费用）'],['max','最高（最多费用）'],['auto','自动（由模型决定）']];
 const outputPrefs={ar:LS('wbAR')||'auto',tier:LS('wbResolution')||'standard',quality:LS('wbQuality')||'medium'};
 const GPT2_SIZES={'2:3':['1024x1536','1536x2304','1920x2880'],'3:4':['960x1280','1536x2048','1920x2560'],'9:16':['864x1536','1152x2048','1440x2560'],'1:1':['1024x1024','2048x2048','2560x2560'],'3:2':['1536x1024','2304x1536','2880x1920'],'4:3':['1280x960','2048x1536','2560x1920'],'16:9':['1536x864','2048x1152','2560x1440']};
 const GPT1_SIZES={'2:3':['1024x1536'],'1:1':['1024x1024'],'3:2':['1536x1024']};
@@ -41,6 +43,7 @@ function outputCaps(){const m=modelOf();
  if(cfg.prov=='gemini'){const multi=/^gemini-(3-pro|3\.1-flash)-image(?:-preview)?$/.test(m),old=/^gemini-2\.5-flash-image(?:-preview)?$/.test(m),base=multi?GEMINI_BASE:GEMINI25_BASE;
   return{kind:'gemini',sizes:Object.fromEntries(Object.entries(base).map(([ar,s])=>[ar,multi?[s,scaleSize(s,2),scaleSize(s,4)]:[s]])),auto:true,multi,estimated:true,note:multi?'按模型的 1K / 2K / 4K 档位请求，宽高为文档参考值，以实际返回为准。':old?'此模型只支持标准分辨率；高清需手动更换支持的模型。':'此模型的尺寸能力未确认，仅发送画幅，不发送分辨率档位。',unknown:!multi&&!old}}
  if(cfg.prov=='seedream'){const known=/^doubao-seedream-4-(0|5)-/.test(m);return{kind:'seedream',sizes:known?SEEDREAM_SIZES:{},auto:true,unknown:!known,note:known?'标准约 4 百万像素；高清请求更多原生像素，费用与耗时可能增加。':'此模型的尺寸能力未确认，使用服务商默认尺寸；高清不可用。'}}
+ if(/^gpt-image-2\.[56]-(sunburst|flare)(?:-\d{4}-\d{2}-\d{2})?$/.test(m))return{kind:'gpt2',sizes:GPT2_SIZES,auto:true,quality:true,qualities:MODERN_GPT_QUALITIES,note:m.startsWith('gpt-image-2.5-')?'此模型超过 2560×1440 的分辨率仍为实验性支持。':''};
  if(/^gpt-image-2(?:-\d{4}-\d{2}-\d{2})?$/.test(m))return{kind:'gpt2',sizes:GPT2_SIZES,auto:true,quality:true};
  if(/^gpt-image-1(?:\.5|-mini)?(?:-\d{4}-\d{2}-\d{2})?$/.test(m))return{kind:'gpt1',sizes:GPT1_SIZES,auto:true,quality:true,note:'此模型仅支持标准尺寸和 2:3、1:1、3:2；其他画幅与高清不可用。'};
  if(m=='dall-e-2')return{kind:'dalle2',sizes:{'1:1':['1024x1024']},auto:false,note:'此模型仅支持方形标准尺寸，渲染质量由模型固定。'};
@@ -50,13 +53,15 @@ function outputChoice(){const cap=outputCaps(),ar=$('#wbAR').value,tier=$('#wbRe
  const size=automatic?(cap.kind=='seedream'?'1728x2304':'auto'):sizes&&sizes[idx];
  const valid=idx>=0&&(automatic?(cap.multi||idx==0):!!size);
  const quality=cap.quality?$('#wbQuality').value:null;
- return{ar,tier,size:cap.unknown?null:size,expectedSize:cap.unknown||size=='auto'?null:size,imageSize:cap.multi?['1K','2K','4K'][idx]:null,quality,kind:cap.kind,estimated:!!cap.estimated,error:!valid?'当前模型或自动画幅不支持所选分辨率。请选择可用画幅与档位。':cap.quality&&!['low','medium','high'].includes(quality)?'请选择可用的渲染质量。':''}}
+ const qualityValid=!cap.quality||(cap.qualities||GPT_QUALITIES).includes(quality);
+ return{ar,tier,size:cap.unknown?null:size,expectedSize:cap.unknown||size=='auto'?null:size,imageSize:cap.multi?['1K','2K','4K'][idx]:null,quality,kind:cap.kind,estimated:!!cap.estimated,invalidField:!valid?'wbResolution':!qualityValid?'wbQuality':null,error:!valid?'当前模型或自动画幅不支持所选分辨率。请选择可用画幅与档位。':!qualityValid?'当前模型不支持已选的渲染质量，请选择可用质量或更换模型。':''}}
 function renderOutput(){const cap=outputCaps(),ar=$('#wbAR').value,{tier,quality}=outputPrefs;
  [...$('#wbAR').options].forEach(o=>o.disabled=o.value=='auto'?!cap.auto:!cap.sizes[o.value]);
  $('#wbResolution').innerHTML=OUTPUT_TIERS.map(([id,label],i)=>{const s=cap.sizes[ar]&&cap.sizes[ar][i],auto=ar=='auto'&&cap.auto,ok=auto?(cap.multi||i==0):!!s;return`<option value="${id}" ${tier==id?'selected':''} ${ok?'':'disabled'}>${label} · ${ok?(cap.unknown?'服务商默认':auto?(cap.kind=='seedream'?prettySize('1728x2304'):cap.multi?['1K','2K','4K'][i]+'，宽高自动':'宽高自动'):prettySize(s)+(cap.estimated?' 参考值':'')):'当前模型 / 画幅不支持'}</option>`}).join('');
- $('#wbQuality').innerHTML=cap.quality?[['medium','中等（默认）'],['high','高（更多细节）'],['low','低（节省费用）']].map(([v,t])=>`<option value="${v}" ${quality==v?'selected':''}>${t}</option>`).join(''):'<option value="fixed">由模型决定（无独立质量参数）</option>';
+ const allowedQualities=cap.qualities||GPT_QUALITIES,qualityOptions=QUALITY_OPTIONS.filter(([v])=>allowedQualities.includes(v)||v==quality);if(!qualityOptions.some(([v])=>v==quality))qualityOptions.push([quality,'不支持的质量设置']);
+ $('#wbQuality').innerHTML=cap.quality?qualityOptions.map(([v,t])=>`<option value="${esc(v)}" ${quality==v?'selected':''} ${allowedQualities.includes(v)?'':'disabled'}>${t}${allowedQualities.includes(v)?'':'（当前模型不支持）'}</option>`).join(''):'<option value="fixed">由模型决定（无独立质量参数）</option>';
  $('#wbQuality').disabled=!cap.quality||!!W.busy;['wbAR','wbResolution','wbN'].forEach(id=>$('#'+id).disabled=!!W.busy);
- const choice=outputChoice();$('#wbAR').setAttribute('aria-invalid',String(ar=='auto'?!cap.auto:!cap.sizes[ar]));$('#wbResolution').setAttribute('aria-invalid',String(!!choice.error));$('#wbOutputHelp').textContent=[choice.error,cap.note,cap.kind=='gpt2'?'尺寸直接请求模型原生输出，本站不放大图片。':'',cap.quality?'默认标准分辨率 + 中等质量；高清、超清或高质量通常更贵、更慢。':'默认使用标准档位，费用按服务商计费。',cfg.prov=='custom'?'中转须支持所选参数；失败时保留设置并报错，不自动降低尺寸或质量。':''].filter(Boolean).join(' ');
+ const choice=outputChoice();$('#wbAR').setAttribute('aria-invalid',String(ar=='auto'?!cap.auto:!cap.sizes[ar]));$('#wbResolution').setAttribute('aria-invalid',String(choice.invalidField=='wbResolution'));$('#wbQuality').setAttribute('aria-invalid',String(choice.invalidField=='wbQuality'));$('#wbOutputHelp').textContent=[choice.error,cap.note,cap.kind=='gpt2'?'尺寸直接请求模型原生输出，本站不放大图片。':'',cap.quality?'默认标准分辨率 + 中等质量；高清、超清或高质量通常更贵、更慢。':'默认使用标准档位，费用按服务商计费。',cfg.prov=='custom'?'中转须支持所选参数；失败时保留设置并报错，不自动降低尺寸或质量。':''].filter(Boolean).join(' ');
  return choice}
 $('#wbAR').value=outputPrefs.ar;
 function loadImg(src){return new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>j(Error('图片读取失败'));i.src=src})}
@@ -220,7 +225,7 @@ async function genOnce(imgs,prompt,sig,output){if(output.error)throw Error(outpu
 // ---------- 进度 ----------
 let T0,tick,PR=0,done=0,total=1;function stage(t){$('#wbStage1').textContent=t}
 function busy(on){$('#wbBusy').hidden=!on;$('#wbGo').classList.toggle('run',on);if(on)$('#wbGo').innerHTML='<i class="ring"></i>生成中…';$('#wbGo').disabled=on;$('#wbAgain').disabled=on;renderOutput();clearInterval(tick);if(on){T0=Date.now();PR=.03;tick=setInterval(()=>{const s=(Date.now()-T0)/1e3,cap=(done+.95)/total;PR=Math.max(done/total,Math.min(cap,PR+(cap-PR)*.03));$('#wbProg').style.transform=`scaleX(${PR})`;$('#wbTime').textContent=`${Math.round(s)} 秒`+(total>1?` · 已完成 ${done} / ${total}`:'');},250)}else render()}
-async function run(){if(W.busy)return;if(!cfg.key){toast('请先配置你的 API');return cfgOpen()}if(!isGen()&&!hasPerson())return toast('请先上传人物照片');if(!W.garments.length)return toast('请先选择服装');const output=outputChoice();if(output.error){errBox(Error(output.error));return $('#wbResolution').focus()}
+async function run(){if(W.busy)return;if(!cfg.key){toast('请先配置你的 API');return cfgOpen()}if(!isGen()&&!hasPerson())return toast('请先上传人物照片');if(!W.garments.length)return toast('请先选择服装');const output=outputChoice();if(output.error){errBox(Error(output.error));return $('#'+output.invalidField).focus()}
  const ac=new AbortController();W.busy=ac;$('#wbErr').hidden=true;$('#wbWarn').hidden=true;
  const n=+$('#wbN').value||1,sets=W.poses.length>1&&W.bm=='each'?W.poses.map(p=>[p]):[W.poses];const jobs=[];sets.forEach(s=>{for(let i=0;i<n;i++)jobs.push(s)});
  done=0;total=jobs.length;busy(true);stage('正在准备素材…');const errs=[],warns=new Set(),got=[];
