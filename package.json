@@ -9,6 +9,7 @@
     "serve": "node server/local.mjs",
     "test:access": "node --test tests/access.test.mjs",
     "test:studio-resolution": "node tests/studio-resolution.js",
+    "test:studio-models": "node tests/studio-models.js",
     "test": "node tests/v12.js && node tests/v13.js",
     "deploy": "wrangler pages deploy dist --project-name posewear"
   },

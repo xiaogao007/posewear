@@ -13,16 +13,33 @@ const CHARS=[['asia','东亚女性','an adult East Asian woman in her mid-20s, l
  ['man','男性模特','an adult East Asian man in his late 20s, short black hair, clean-shaven, tall and lean','一位二十多岁的成年东亚男性，黑色短发，干净面容，高瘦身材'],
  ['anime','动漫角色','an adult anime-style girl, long silver hair, large expressive eyes, adult proportions, clean cel-shaded illustration','一位成年动漫风格女性角色，银色长发，大眼睛，成人身材比例，干净的赛璐璐上色插画'],
  ['custom','自定义','','']];
-const STYLES=[['keep','照片质感','photorealistic, matching the original photo quality','写实摄影质感，与原照片画质一致'],['studio','影棚大片','clean high-end fashion studio, soft key light, seamless light-grey backdrop, editorial lookbook photo','高端时尚影棚，柔和主光，浅灰无缝背景，杂志画册质感'],
- ['street','城市街拍','candid city street-style photo, natural daylight, shallow depth of field','城市街拍抓拍，自然日光，浅景深'],['ecom','电商白底','e-commerce product-model photo, pure white background, even lighting, full body','电商模特图，纯白背景，均匀布光，全身构图'],
- ['film','胶片氛围','35mm film photograph, warm tones, subtle grain, golden hour light','35mm 胶片摄影，暖色调，轻微颗粒，黄金时刻光线'],['anime','动漫插画','high-quality anime illustration, clean line art, soft cel shading','高质量动漫插画，干净线稿，柔和赛璐璐上色']];
+// Outfit-led photography for everyday social posts. Style never redesigns the reference outfit.
+const STYLES=[
+ {id:'daily',label:'清透日常',hint:'自然光 · 干净耐看',note:'明亮自然光、简洁生活背景，清楚呈现肤色和衣料本色。',primary:true,
+  en:'fresh everyday outfit photograph, bright diffused window daylight, uncluttered cream or light-grey interior, true-to-life colors and gentle natural contrast',zh:'清透自然的日常穿搭摄影，明亮均匀的窗边自然光，简洁米白或浅灰生活背景，真实色彩与自然反差',toneEn:'fresh true-to-life colors and gentle natural contrast',toneZh:'清透真实的色彩与自然反差'},
+ {id:'commute',label:'温柔通勤',hint:'柔和中性 · 利落松弛',note:'浅色建筑、柔和中性色，让通勤搭配有轮廓也有亲近感。',primary:true,
+  en:'approachable modern workday outfit editorial, quiet pale stone architecture, soft neutral daylight, balanced beige and grey tones, clean restrained composition',zh:'温柔利落的日常通勤穿搭摄影，安静的浅色石材建筑，柔和中性日光，平衡的米灰色调，克制干净的构图',toneEn:'balanced neutral beige and grey color grading with restrained contrast',toneZh:'平衡克制的米灰中性色调与自然对比'},
+ {id:'street',label:'周末出街',hint:'生活街景 · 轻松随拍',note:'安静街角、自然日光，保留轻松随拍感与清楚的穿搭细节。',primary:true,
+  en:'relaxed weekend street-style photograph, quiet walkable city corner with simple storefronts, clear natural daylight, fresh balanced colors, candid photographic feel while following the reference pose',zh:'轻松自然的周末穿搭街拍，安静街角与简洁店面，清晰自然日光，清爽平衡的色彩，在参考姿势下呈现随拍摄影感',toneEn:'fresh balanced street-photography colors with natural local contrast',toneZh:'清爽平衡的街拍色彩与自然局部反差'},
+ {id:'date',label:'约会氛围',hint:'微暖光线 · 温柔近人',note:'微暖咖啡店或浅色露台，肤色自然，背景保留可辨认的环境细节。',primary:true,
+  en:'gentle everyday date outfit photograph, calm cafe terrace or warm ivory interior, softly warm daylight with neutral skin tones, inviting atmosphere and a readable background',zh:'温柔亲近的日常约会穿搭摄影，安静咖啡店露台或暖象牙白室内，微暖日光与自然肤色，背景环境清楚可辨',toneEn:'subtly warm color grading with neutral natural skin tones',toneZh:'微暖而克制的色调与自然真实的肤色'},
+ {id:'campus',label:'轻甜学院',hint:'明快配色 · 轻盈日常',note:'书店或林荫步道的清新氛围，保持成年人物与原搭配。',primary:true,
+  en:'fresh collegiate-inspired everyday outfit photograph of an adult, quiet bookshop exterior or tree-lined walkway, bright neutral daylight, airy light color grading, lighthearted editorial mood; keep the supplied garments unchanged',zh:'成年人物的轻甜学院感日常穿搭摄影，安静书店外或林荫步道，明亮中性日光，轻盈清新色调；服装仍严格沿用参考搭配',toneEn:'airy fresh color grading and a lighthearted adult editorial mood',toneZh:'轻盈清新的色调与自然成年气质'},
+ {id:'studio',label:'穿搭画报',hint:'简洁布景 · 轮廓清楚',note:'浅灰或米白布景、均匀布光，突出整套搭配的轮廓和面料层次。',primary:true,
+  en:'clean fashion lookbook photograph, seamless light-grey or cream studio backdrop, large even softbox lighting, natural tonal separation, outfit-led editorial composition with a clear silhouette',zh:'简洁时装穿搭画报摄影，浅灰或米白无缝影棚布景，大面积均匀柔光，自然明暗层次，以服装为主的清楚轮廓与画册构图',toneEn:'clean neutral editorial color grading with natural tonal separation',toneZh:'干净中性的画报色调与自然明暗层次'},
+ {id:'keep',label:'原片质感',en:'photorealistic photograph, true-to-life colors, natural skin texture and clearly resolved fabric detail',zh:'写实摄影质感，真实色彩、自然皮肤纹理与清楚的衣料细节',note:'保留自然摄影质感，按参考图呈现人物与服装。'},
+ {id:'ecom',label:'电商白底',en:'e-commerce product-model photo, pure white background, even lighting, full body',zh:'电商模特图，纯白背景，均匀布光，全身构图',note:'纯白背景与均匀布光，适合核对服装款式。'},
+ {id:'film',label:'胶片色调',en:'warm restrained 35mm film-inspired color grading, natural skin tones, crisp facial and fabric detail, no added grain or haze',zh:'克制温暖的35mm胶片风格色调，自然肤色、清楚的面部和衣料细节，不添加颗粒或雾化',note:'保留暖调胶片色彩，面部与衣料仍清晰。'},
+ {id:'anime',label:'动漫插画',en:'high-quality anime illustration, clean line art, soft cel shading',zh:'高质量动漫插画，干净线稿，柔和赛璐璐上色',note:'将画面转为动漫插画，适合单独探索插画效果。'}];
+const PHOTO_DETAIL={en:'Keep the face, individual hair strands and fabric weave clearly resolved, realistic skin texture, moderate depth of field and natural local contrast; no soft focus, haze, glow diffusion, heavy skin smoothing or added film grain. The style changes only the setting, light and color treatment, never the reference identity, outfit, accessories or body proportions.',zh:'面部、独立发丝与衣料纹理清楚可辨，保留真实皮肤细节，适当景深与自然局部反差；不柔焦、雾化、加光晕、过度磨皮或添加胶片颗粒。风格只调整场景、光线与色调，不改变参考人物身份、服装、配饰和身体比例。'};
+const savedStyle=LS('wbStyle'),initialStyle=STYLES.some(s=>s.id==savedStyle)?savedStyle:'daily';
 const ANG_EN={'正面':'front view','斜侧':'three-quarter view','侧面':'side profile','俯拍':'high-angle shot looking down','仰拍':'low-angle shot looking up','背面':'back view','下から':'low angle'};
-const W={mode:LS('wbMode')||'tryon',persons:[],garments:[],poses:[],char:LS('wbChar')||'asia',charTxt:LS('wbCharTxt')||'',style:LS('wbStyle')||'keep',bm:LS('wbBm')||'each',pl:LS('wbPl')||'en',keepBg:LS('wbKeepBg')??true,busy:null,dirty:false,results:[],ri:0,cmp:true};
+const W={mode:LS('wbMode')||'tryon',persons:[],garments:[],poses:[],char:LS('wbChar')||'asia',charTxt:LS('wbCharTxt')||'',style:initialStyle,bm:LS('wbBm')||'each',pl:LS('wbPl')||'en',keepBg:LS('wbKeepBg')??true,busy:null,dirty:false,results:[],ri:0,cmp:true};
 // item: {kind:'lib',k,ai?} | {kind:'file',blob,url,name}
 const g0=LS('wbSel')||{};
 // ---------- 工具 ----------
 const normBase=b=>(b||'').trim().replace(/\/+$/,'');
-function root(){let b=normBase(cfg.base)||PROV[cfg.prov].base;if(cfg.prov=='gemini')return/\/v1(beta|alpha)?$/.test(b)?b:b+'/v1beta';if(cfg.prov=='seedream')return b;return/\/v\d+$/.test(b)?b:b+'/v1'}
+function root(c=cfg){let b=normBase(c.base)||PROV[c.prov].base;if(c.prov=='gemini')return/\/v1(beta|alpha)?$/.test(b)?b:b+'/v1beta';if(c.prov=='seedream')return b;return/\/v\d+$/.test(b)?b:b+'/v1'}
 const modelOf=()=>(cfg.model||'').trim()||PROV[cfg.prov].model;
 const proto=()=>cfg.prov=='openai'?'edits':cfg.prov=='custom'?cfg.proto:cfg.prov;
 // Native output capabilities, independent of reference-image resizing. Sources:
@@ -74,7 +91,8 @@ const dataURL=async b=>'data:'+(b.type||'image/jpeg')+';base64,'+await b64(b);
 const isGen=()=>W.mode=='gen';const hasPerson=()=>W.persons.length>0;
 // ---------- 提示词 ----------
 function poseDesc(p,en){const it=A.ITEMS[p.k];if(!it)return'';const a=it.angles[p.ai??it.ai];return en?`${it.en} (${it.lineEn}, ${ANG_EN[a.zh]||a.en||a.zh})${/2人|双人/.test(it.line)?' — a two-person pose: match the number of people and their relative positions':''}`:`${it.zh}（${it.line}，${a.zh}）${/2人|双人/.test(it.line)?'——双人姿势，人数与相对位置需与线稿一致':''}`}
-function compose(poseSet){const en=W.pl=='en',P=W.persons.length,G=W.garments.length,ps=poseSet||W.poses,np=ps.length,sheet=np>1;const style=STYLES.find(s=>s[0]==W.style)||STYLES[0],ch=CHARS.find(c=>c[0]==W.char)||CHARS[0],ex=$('#wbExtra').value.trim();
+const selectedStyle=()=>STYLES.find(s=>s.id==W.style)||STYLES[0];
+function compose(poseSet){const en=W.pl=='en',P=W.persons.length,G=W.garments.length,ps=poseSet||W.poses,np=ps.length,sheet=np>1;const style=selectedStyle(),ch=CHARS.find(c=>c[0]==W.char)||CHARS[0],ex=$('#wbExtra').value.trim(),keepScene=P&&W.keepBg&&!isGen(),look=keepScene&&style.primary?(en?style.toneEn:style.toneZh):(en?style.en:style.zh);
  const gi=W.garments.map(g=>g.kind=='lib'&&A.ITEMS[g.k]).filter(Boolean);let n=0;const rng=(c)=>{if(!c)return null;const a=n+1,b=n+c;n=b;return a==b?(en?`image ${a}`:`第 ${a} 张`):(en?`images ${a}–${b}`:`第 ${a}–${b} 张`)};
  const rP=rng(P),rG=rng(G),rS=rng(np);const L=[];
  if(en){L.push(P?`Fashion ${isGen()?'image generation':'virtual try-on'} using reference images. ${rP} ${P>1?'show':'shows'} the person (same individual)${G?`; ${rG} ${G>1?'show':'shows'} the outfit${G>1?' pieces (top and bottom)':''} on an invisible mannequin`:''}${np?`; ${rS} ${np>1?'are':'is'} pose sketch${np>1?'es':''}`:''}.`:`Fashion image generation from reference images. ${G?`${rG} ${G>1?'show':'shows'} the outfit on an invisible mannequin`:''}${np?`; ${rS} ${np>1?'are':'is'} pose sketch${np>1?'es':''}`:''}.`);
@@ -82,17 +100,21 @@ function compose(poseSet){const en=W.pl=='en',P=W.persons.length,G=W.garments.le
   if(G)L.push(`Outfit: dress the subject in the complete outfit from ${rG}, reproducing every garment faithfully — cut, color, fabric, pattern, layering, shoes and accessories${gi.length?': '+gi.map(x=>x.en.replace(/^[^,]*outfit,\s*/,'')).join('; '):''}. Replace the original clothing entirely. Never draw the mannequin or a blank body.`);
   if(np)L.push((sheet&&W.bm=='sheet'?`Pose: draw ${np} panels in one image, one per pose sketch, same subject and outfit in every panel, with even spacing and no text: `:'Pose: ')+ps.map((p,i)=>(sheet&&W.bm=='sheet'?`(${i+1}) `:'')+poseDesc(p,true)).join('; ')+'. Use the sketch only for body posture, weight, limb placement and camera angle; never draw sketch lines, joint circles or guide marks.');
   else if(P)L.push('Pose: keep the original pose, framing and camera angle.');
-  L.push(`Look: ${P&&W.keepBg&&!isGen()?'keep the original background and lighting of the photo; ':''}${style[2]}. Natural fabric drape with realistic folds and shadows, high detail. No text, no watermark, no borders.`);
+  L.push(`Look: ${keepScene?'keep the original background and lighting of the photo; ':''}${look}. ${style.primary?PHOTO_DETAIL.en+' ':''}Natural fabric drape with realistic folds and shadows, high detail. No text, no watermark, no borders.`);
   if(ex)L.push('Additional: '+ex)}
  else{L.push(P?`时尚${isGen()?'生图':'虚拟试穿'}，使用参考图。${rP}是人物照片（同一人）${G?`；${rG}是放在隐形人台上的服装${G>1?'（上装与下装）':''}`:''}${np?`；${rS}是姿势线稿`:''}。`:`根据参考图进行时尚生图。${G?`${rG}是放在隐形人台上的服装`:''}${np?`；${rS}是姿势线稿`:''}。`);
   L.push(P?'人物：照片中的人。严格保留其面部、身份特征、发型、肤色与身材比例，必须一眼认出是同一位成年人。':`人物：${(W.char=='custom'?W.charTxt:ch[3])||ch[3]||'一位成年模特'}。始终为成年人比例。`);
   if(G)L.push(`服装：为人物换上${rG}中的整套服装，准确还原版型、颜色、面料、图案、叠穿、鞋袜与配饰${gi.length?'：'+gi.map(x=>x.zh.replace(/[。.]$/,'')).join('；'):''}。完全替换原有衣物，不要画出人台或空白身体。`);
   if(np)L.push((sheet&&W.bm=='sheet'?`姿势：在同一张图中画 ${np} 格，每格对应一张线稿，人物与服装保持一致，均匀留白，不写文字：`:'姿势：')+ps.map((p,i)=>(sheet&&W.bm=='sheet'?`（${i+1}）`:'')+poseDesc(p,false)).join('；')+'。线稿只用于提取身体姿态、重心、四肢位置和镜头角度，不要画出线条、关节圆或辅助线。');
   else if(P)L.push('姿势：保持原照片的姿势、构图和拍摄角度。');
-  L.push(`画面：${P&&W.keepBg&&!isGen()?'保留原照片的背景与光线；':''}${style[3]}。衣物垂坠自然，褶皱阴影真实，高细节。不要文字、水印或边框。`);
+  L.push(`画面：${keepScene?'保留原照片的背景与光线；':''}${look}。${style.primary?PHOTO_DETAIL.zh:''}衣物垂坠自然，褶皱阴影真实，高细节。不要文字、水印或边框。`);
   if(ex)L.push('补充：'+ex)}
  return L.join('\n')}
-function reprompt(force){if(force||!W.dirty){$('#wbPrompt').value=compose();W.dirty=false}}
+function reprompt(force){if(force||!W.dirty){$('#wbPrompt').value=compose();W.dirty=false}renderStyleHelp()}
+function renderStyleHelp(){const s=selectedStyle(),keepScene=hasPerson()&&W.keepBg&&!isGen();$('#wbStyleHelp').textContent=`当前：${s.label}。`+(W.dirty?'提示词已手动修改；点击高级设置中的“重置”应用所选风格。':keepScene&&s.primary?'保留原背景时仅应用色调；配套场景需在高级设置关闭“保留原照片背景与光线”。':s.note)}
+let stylesInitialized=false;
+function renderStyles(){const button=s=>`<button type="button" class="${s.primary?'style-choice':'chip'}${W.style==s.id?' on':''}" data-style="${s.id}" aria-pressed="${W.style==s.id}" ${W.busy?'disabled':''}><span>${s.label}</span>${s.primary?`<small>${s.hint}</small>`:''}</button>`;
+ $('#wbStylePrimary').innerHTML=STYLES.filter(s=>s.primary).map(button).join('');$('#wbStyleSecondary').innerHTML=STYLES.filter(s=>!s.primary).map(button).join('');$('#wbStyleCurrent').textContent=selectedStyle().primary?'':`当前：${selectedStyle().label}`;if(!stylesInitialized){$('#wbStyleMore').open=!selectedStyle().primary;stylesInitialized=true}}
 // ---------- 渲染 ----------
 function pickRow(a,type,i){const it=a.kind=='lib'&&A.ITEMS[a.k];if(a.kind=='lib'&&!it)return'<div class="empty0">加载中…</div>';
  const src=it?(type=='pose'?it.angles[a.ai??it.ai].t:A.thumb(it)):a.url,t=it?A.title(it):(a.name||'自定义图片'),sub=it?(it.type=='pose'?it.line+' · '+it.angles[a.ai??it.ai].zh:it.cat+' · '+it.id):(type=='costume'?(W.garments.length>1?(i==0?'上装':'下装'):'本地上传'):'本地上传');
@@ -106,7 +128,7 @@ function render(){const G=isGen();$$('[data-mode]').forEach(b=>b.classList.toggl
  $('#wbG').innerHTML=W.garments.length?W.garments.map((g,i)=>pickRow(g,'costume',i)).join(''):'<button class="empty0" data-pick="costume"><span><b>选择服装</b><small>从库里选，或上传图片</small></span></button>';
  $('#wbPo').innerHTML=W.poses.length?W.poses.map((p,i)=>pickRow(p,'pose',i)).join(''):`<button class="empty0" data-pick="pose"><span><b>选择姿势（可选）</b><small>${G?'不选就随机':'不选就保持原姿势'}</small></span></button>`;
  $('#wbBatch').hidden=W.poses.length<2;$$('[data-bm]').forEach(b=>b.classList.toggle('on',b.dataset.bm==W.bm));$('#wbAllAng').hidden=W.poses.length!=1||!A.ITEMS[(W.poses[0]||{}).k];
- $('#wbStyles').innerHTML=STYLES.map(s=>`<button class="chip ${W.style==s[0]?'on':''}" data-style="${s[0]}">${s[1]}</button>`).join('');$('#wbKeepBg').checked=W.keepBg;$('#wbKeepBg').closest('label').hidden=G||!hasPerson();
+ renderStyles();$('#wbKeepBg').checked=W.keepBg;$('#wbKeepBg').closest('label').hidden=G||!hasPerson();
  $$('[data-pl]').forEach(b=>b.classList.toggle('on',b.dataset.pl==W.pl));
  const ok=!!cfg.key;$('#wbDot').className='dot'+(ok?' on':'');$('#wbProv').textContent=ok?PROV[cfg.prov].name+' · '+modelOf():'未配置 API';$('#wbDot2').className='dot'+(ok?' on':'');$('#wbProv2').textContent=ok?PROV[cfg.prov].name:'未配置 API';$('#wbOnb').hidden=ok;
  const dn=[G?true:hasPerson(),W.garments.length>0,W.poses.length>0,!!(W.style||$('#wbExtra').value)];$$('.step[data-s]').forEach(e=>e.classList.toggle('done',dn[e.dataset.s-1]));
@@ -127,15 +149,15 @@ $('#studio').addEventListener('click',e=>{const t=e.target;let b;
  if(b=t.closest('[data-rmp]')){W.persons.splice(+b.dataset.rmp,1);render()}
  if(b=t.closest('[data-pick]'))picker(b.dataset.pick);
  if(b=t.closest('[data-pl]')){W.pl=b.dataset.pl;SV('wbPl',W.pl);reprompt(true);render()}
- if(b=t.closest('[data-mode]')){W.mode=b.dataset.mode;SV('wbMode',W.mode);if(W.mode=='gen'&&W.style=='keep'){W.style='studio'}if(W.mode=='tryon'&&W.style=='studio'&&!W.dirtyStyle)W.style='keep';W.dirty=false;render()}
+ if(b=t.closest('[data-mode]')){W.mode=b.dataset.mode;SV('wbMode',W.mode);W.dirty=false;render()}
  if(b=t.closest('[data-char]')){W.char=b.dataset.char;SV('wbChar',W.char);render()}
- if(b=t.closest('[data-style]')){W.style=b.dataset.style;W.dirtyStyle=1;SV('wbStyle',W.style);render()}
+ if(b=t.closest('[data-style]')){if(W.busy)return;W.style=b.dataset.style;SV('wbStyle',W.style);render();$(`#wbStyles [data-style="${W.style}"]`).focus({preventScroll:true})}
  if(b=t.closest('[data-bm]')){W.bm=b.dataset.bm;SV('wbBm',W.bm);render()}});
 $('#studio').addEventListener('change',e=>{const s=e.target.closest('[data-ang]');if(s){W.poses[+s.dataset.ang].ai=+s.value;render()}if(e.target.id=='wbN')render();if(e.target.id=='wbKeepBg'){W.keepBg=e.target.checked;SV('wbKeepBg',W.keepBg);render()}});
 for(const [id,key] of [['wbAR','ar'],['wbResolution','tier'],['wbQuality','quality']])$('#'+id).addEventListener('change',e=>{outputPrefs[key]=e.target.value;SV(id,e.target.value);render()});
 $('#wbCharTxt').oninput=e=>{W.charTxt=e.target.value;SV('wbCharTxt',W.charTxt);reprompt()};
 $('#wbAllAng').onclick=()=>{const p=W.poses[0],it=A.ITEMS[p.k];W.poses=it.angles.slice(0,6).map((a,i)=>({kind:'lib',k:p.k,ai:i}));toast(`已展开 ${W.poses.length} 个角度`);render()};
-$('#wbPrompt').oninput=()=>W.dirty=true;$('#wbExtra').oninput=()=>reprompt();$('#wbReP').onclick=()=>{reprompt(true);toast('已按当前选择重新生成提示词')};
+$('#wbPrompt').oninput=()=>{W.dirty=true;renderStyleHelp()};$('#wbExtra').oninput=()=>reprompt();$('#wbReP').onclick=()=>{reprompt(true);toast('已按当前选择重新生成提示词')};
 $('#wbCopyP').onclick=()=>A.copy($('#wbPrompt').value,'提示词');
 // ---------- 选择器 ----------
 let pkType='costume';async function picker(t){pkType=t;$('#pkT').textContent=t=='pose'?'选择姿势（可多选，最多 6 个）':t=='portrait'?'选择人像（作为人物 / 脸部参考）':'选择服装';$('#pkDone').hidden=t!='pose';$('#pk').hidden=false;document.body.style.overflow='hidden';$('#pkQ').value='';$('#pkG').innerHTML='<div class="skel"></div>'.repeat(12);await A.load(t);drawPk();setTimeout(()=>$('#pkQ').focus(),50)}
@@ -168,27 +190,71 @@ function neutralize(p){let t=p;for(const [a,b] of NEUTRAL)t=t.replace(a,b?'\x01'
  t=t.replace(/\b(with|and|in)\s+\x02\s+(?:and|with)\b/gi,'$1').replace(/\x01\x02*\x01/g,'、').replace(/\x01\s+\x01/g,' ').replace(/[\x01]/g,'').replace(/\s*\x02\s*/g,' ')
   .replace(/(^|[，,、；;：:。.\n])\s*(?:and|with|,)?\s*(?=[，,、；;。.\n]|$)/g,'$1').replace(/([，、；])[，、；]+/g,'$1').replace(/([,;])\s*[,;]+/g,'$1').replace(/[ \t]{2,}/g,' ').replace(/\s+([,.;，。；、])/g,'$1').replace(/^[，,、]\s*|[，,、]\s*$/gm,'').replace(/[,，、]\s*([.。;；])/g,'$1');
  const zh=/[\u4e00-\u9fa5]/.test(t.slice(0,40))&&W.pl!='en';return FRAME[zh?'zh':'en']+'\n'+t}
-function cfgFill(){$$('[name=prov]').forEach(r=>r.checked=r.value==cfg.prov);const P=PROV[cfg.prov];$('#cfBase').value=cfg.base;$('#cfBase').placeholder=P.base||'https://你的中转地址/v1';$('#cfKey').value=cfg.key;$('#cfKey').placeholder=cfg.prov=='gemini'?'AIza…':'sk-… / 方舟 API Key';
- $('#cfModel').value=cfg.model;$('#cfModel').placeholder=P.model;$('#cfModels').innerHTML=P.models.map(m=>`<option value="${m}">`).join('');$('#cfField').value=cfg.field;$('#cfProto').value=cfg.proto;$('#cfProtoW').hidden=cfg.prov!='custom';$('#cfFieldW').hidden=!(cfg.prov=='custom'&&cfg.proto=='edits');$('#cfProxy').checked=cfg.proxy;$('#cfHelp').innerHTML=({openai:'在 <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a> 创建密钥；gpt-image-1 需要已验证的组织。',gemini:'在 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> 免费获取 API Key（AIza 开头）。',seedream:'在 <a href="https://console.volcengine.com/ark" target="_blank" rel="noopener">火山方舟控制台</a> 开通 Seedream 模型并创建 API Key；会自动走本站代理。',custom:'填写中转商提供的 Base URL（通常以 /v1 结尾）与密钥，并按中转文档选择接口协议。'})[cfg.prov]||'';$('#cfMsg').textContent='';$('#cfMsg').className='fine'}
+// Discovery uses the settings draft, never the active generation configuration.
+// Official contracts: OpenAI GET /v1/models; Gemini GET /v1beta/models
+// (pageSize/nextPageToken); Ark GET /api/v3/models (modalities/domain).
+// Model visibility does not guarantee quota, reference support, or every output setting.
+let cfgProvider=cfg.prov,cfgDrafts={},modelExplicit=false,modelTimer,modelController,modelSerial=0;
+const MANUAL_MODEL='__manual__';
+function cancelModels(){clearTimeout(modelTimer);modelController?.abort();modelController=null;modelSerial++;$('#cfModelPicker').setAttribute('aria-busy','false');$('#cfRefresh').disabled=false;$('#cfTest').disabled=false}
+function modelStatus(t,bad=false){$('#cfModelsStatus').textContent=t;$('#cfModelsStatus').className='fine'+(bad?' bad':'')}
+function modelOptions(models,live=false){const s=$('#cfModelSelect'),input=$('#cfModel'),current=input.value.trim(),manual=s.value==MANUAL_MODEL&&modelExplicit;
+ const ids=models.map(m=>m.id),preferred=(modelExplicit&&current)||ids.find(id=>id==PROV[cfgProvider].model)||ids[0]||current;
+ const options=models.map(m=>`<option value="${esc(m.id)}">${esc(m.label||m.id)}</option>`).join('');
+ s.innerHTML=`<optgroup label="${live?'接口返回的生图模型':'预设模型（未核验账户权限）'}">${options}</optgroup>`+(preferred&&!ids.includes(preferred)?`<optgroup label="当前配置（列表未确认）"><option value="${esc(preferred)}">${esc(preferred)}</option></optgroup>`:'')+`<option value="${MANUAL_MODEL}">手动填写其他模型 ID…</option>`;
+ s.value=manual?MANUAL_MODEL:preferred||MANUAL_MODEL;if(!manual)input.value=preferred;$('#cfManualW').hidden=s.value!=MANUAL_MODEL;
+}
+function imageModel(m,c){if(!m||typeof m!='object')return null;const id=String(m.id||m.name||'').replace(/^models\//,'');if(!id||id==MANUAL_MODEL||id.length>200||/[\s<>]/.test(id)||/shutdown|deprecated|disabled/i.test(m.status||''))return null;
+ const modalities=m.modalities?.output_modalities||m.outputModalities||m.output_modalities;
+ if(Array.isArray(modalities)&&modalities.length&&!modalities.some(x=>/^image$/i.test(x)))return null;
+ const gpt=/^(?:gpt-image-|chatgpt-image-)/i.test(id)||/^dall-e-2(?:$|-)/i.test(id),gem=/^gemini-.*(?:image|nano-banana)/i.test(id);
+ let ok;if(c.prov=='gemini')ok=gem&&(!Array.isArray(m.supportedGenerationMethods)||m.supportedGenerationMethods.includes('generateContent'));
+ else if(c.prov=='openai')ok=gpt;
+ else if(c.prov=='seedream')ok=/^doubao-seedream-/i.test(id)||m.domain=='ImageGeneration';
+ else ok=gpt||gem||/(?:^|[\/.-])(?:flux|qwen-image|seedream|stable-diffusion|sdxl|imagen)(?:$|[\/.-])/i.test(id)||m.domain=='ImageGeneration'||Array.isArray(modalities)&&modalities.some(x=>/^image$/i.test(x));
+ return ok?{id,label:c.prov=='gemini'&&m.displayName?`${m.displayName} · ${id}`:id}:null;
+}
+async function listImageModels(c,signal){let token='',all=[],pages=new Set();
+ do{if(pages.size>=10||pages.has(token))throw Error('模型列表分页未完成，请重试或手动填写模型 ID');pages.add(token);
+  const url=new URL(root(c)+'/models');if(c.prov=='gemini'){url.searchParams.set('pageSize','1000');if(token)url.searchParams.set('pageToken',token)}
+  const r=await call(url.toString(),{method:'GET',headers:auth(c),signal},c);if(!r.ok)throw Error(({401:'密钥无效或已过期，请检查 API Key',403:'没有模型列表权限，请检查密钥权限或账户地区',404:'此地址未提供模型列表接口，可使用预设或手动填写',429:'模型列表请求过于频繁，请稍后刷新'})[r.status]||`获取模型列表失败（HTTP ${r.status}），请稍后刷新`);
+  const j=await r.json(),rows=c.prov=='gemini'?j.models:j.data;if(!Array.isArray(rows))throw Error('模型列表格式无法识别，可使用预设或手动填写');all.push(...rows);token=c.prov=='gemini'&&typeof j.nextPageToken=='string'?j.nextPageToken:'';
+ }while(token);
+ return [...new Map(all.map(m=>imageModel(m,c)).filter(Boolean).map(m=>[m.id,m])).values()].sort((a,b)=>a.id.localeCompare(b.id));
+}
+function resetModels(){cancelModels();modelOptions(PROV[cfgProvider].models.map(id=>({id})));modelStatus('填写 API Key 后自动获取生图模型；预设尚未核验账户权限。');$('#cfRefresh').disabled=!$('#cfKey').value.trim()||(cfgProvider=='custom'&&!$('#cfBase').value.trim())}
+async function loadModels(test=false){cancelModels();const c=cfgRead(),serial=modelSerial;
+ if(!c.key){modelStatus('填写 API Key 后自动获取生图模型。');if(test)msg('请先填写 API Key',1);return}
+ if(c.prov=='custom'&&!c.base){modelStatus('填写 Base URL 和 API Key 后自动获取生图模型。');if(test)msg('请填写 Base URL',1);return}
+ try{const u=new URL(root(c));if(u.protocol!='https:'||u.username||u.password)throw 0}catch(e){modelStatus('请填写有效的 HTTPS Base URL。',true);return}
+ const controller=new AbortController();modelController=controller;let timedOut=false;const timer=setTimeout(()=>{timedOut=true;controller.abort()},15000);
+ $('#cfModelPicker').setAttribute('aria-busy','true');$('#cfRefresh').disabled=true;$('#cfTest').disabled=true;modelStatus('正在获取生图模型…');if(test)msg('正在连接并获取模型列表…');
+ try{const models=await listImageModels(c,controller.signal);if(serial!=modelSerial)return;modelOptions(models,true);const current=$('#cfModel').value,listed=models.some(m=>m.id==current);
+  const text=models.length?`已获取 ${models.length} 个适配当前接口的生图模型。${listed?'':'当前模型未在列表中，已保留原配置。'}列表可见不代表已开通额度或支持所有出图参数。`:'接口未返回适配当前接口的生图模型；可检查模型权限，或手动填写模型 ID。';modelStatus(text,!models.length);if(test)msg('连接成功。'+text);
+ }catch(e){if(serial!=modelSerial)return;const t=timedOut?'获取模型列表超时，请刷新重试；也可使用预设或手动填写。':e.name=='AbortError'?'已取消获取模型列表。':e instanceof TypeError?'无法获取模型列表。请检查网络，或开启「通过本站代理转发」后重试。':e instanceof SyntaxError?'模型列表不是有效 JSON，可使用预设或手动填写。':e.message;modelStatus(t,true);if(test)msg(t,1)}
+ finally{clearTimeout(timer);if(serial==modelSerial){modelController=null;$('#cfModelPicker').setAttribute('aria-busy','false');$('#cfRefresh').disabled=false;$('#cfTest').disabled=false}}
+}
+function scheduleModels(){resetModels();modelTimer=setTimeout(()=>loadModels(),700)}
+function cfgFill(o=cfg,explicit=!!o.model){cancelModels();cfgProvider=o.prov;modelExplicit=explicit;$$('[name=prov]').forEach(r=>r.checked=r.value==o.prov);const P=PROV[o.prov];$('#cfBase').value=o.base;$('#cfBase').placeholder=P.base||'https://你的中转地址/v1';$('#cfKey').value=o.key;$('#cfKey').placeholder=o.prov=='gemini'?'AIza…':'sk-… / 方舟 API Key';
+ $('#cfModelSelect').innerHTML='';$('#cfModel').value=o.model;$('#cfModel').placeholder=P.model;$('#cfField').value=o.field;$('#cfProto').value=o.proto;$('#cfProtoW').hidden=o.prov!='custom';$('#cfFieldW').hidden=!(o.prov=='custom'&&o.proto=='edits');$('#cfProxy').checked=o.proxy;$('#cfHelp').innerHTML=({openai:'在 <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI 控制台</a> 创建密钥，并为生图模型开通相应权限。',gemini:'在 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> 获取 API Key；仅列出支持当前生图接口的 Gemini 模型。',seedream:'在 <a href="https://console.volcengine.com/ark" target="_blank" rel="noopener">火山方舟控制台</a> 开通 Seedream 模型并创建 API Key；自动走本站代理获取模型列表。',custom:'填写中转商提供的 Base URL（通常以 /v1 结尾）与密钥。自动获取列表；未列出的别名可手动填写。'})[o.prov]||'';$('#cfMsg').textContent='';$('#cfMsg').className='fine';resetModels();if(!$('#cfg').hidden)loadModels()}
 function cfgRead(){return{prov:($('[name=prov]:checked')||{}).value||'openai',base:$('#cfBase').value.trim(),key:$('#cfKey').value.trim(),model:$('#cfModel').value.trim(),field:$('#cfField').value,proto:$('#cfProto').value,proxy:$('#cfProxy').checked}}
-const cfgOpen=()=>{if(W.busy)return toast('生成完成或取消后可修改 API 设置');cfgFill();$('#cfg').hidden=false;document.body.style.overflow='hidden'},cfgClose=()=>{$('#cfg').hidden=true;document.body.style.overflow=''};
+const cfgOpen=()=>{if(W.busy)return toast('生成完成或取消后可修改 API 设置');cfgDrafts={};cfgFill();$('#cfg').hidden=false;document.body.style.overflow='hidden';loadModels()},cfgClose=()=>{cancelModels();cfgDrafts={};$('#cfg').hidden=true;document.body.style.overflow=''};
 $('#wbCfg').onclick=cfgOpen;$('#wbCfg2').onclick=cfgOpen;$('#wbOnbGo').onclick=cfgOpen;$('#cfgX').onclick=cfgClose;$('#cfg').addEventListener('click',e=>{if(e.target.id=='cfg')cfgClose()});
-$$('[name=prov]').forEach(r=>r.onchange=()=>{const o=cfgRead();Object.assign(cfg,o,{base:'',model:''});if(o.prov=='seedream')cfg.proxy=true;cfgFill();if(o.prov=='seedream')msg('火山方舟接口不允许浏览器跨域，已开启本站代理')});
-$('#cfProto').onchange=()=>{cfg.proto=$('#cfProto').value;$('#cfFieldW').hidden=cfg.proto!='edits'};
+$$('[name=prov]').forEach(r=>r.onchange=()=>{cfgDrafts[cfgProvider]={...cfgRead(),prov:cfgProvider,explicit:modelExplicit};const o=cfgDrafts[r.value]||{prov:r.value,base:'',key:'',model:'',field:'image[]',proto:'edits',proxy:r.value=='seedream'};cfgFill(o,o.explicit??!!o.model)});
+$('#cfProto').onchange=()=>{$('#cfFieldW').hidden=$('#cfProto').value!='edits';scheduleModels()};
+for(const id of ['cfBase','cfKey'])$('#'+id).addEventListener('input',scheduleModels);$('#cfProxy').onchange=scheduleModels;
+$('#cfModelSelect').onchange=()=>{modelExplicit=true;const value=$('#cfModelSelect').value;$('#cfManualW').hidden=value!=MANUAL_MODEL;if(value!=MANUAL_MODEL)$('#cfModel').value=value;else $('#cfModel').focus()};$('#cfModel').oninput=()=>modelExplicit=true;
+$('#cfRefresh').onclick=()=>loadModels();
 $('#cfEye').onclick=()=>{const k=$('#cfKey');k.type=k.type=='password'?'text':'password';$('#cfEye').textContent=k.type=='password'?'显示':'隐藏'};
-$('#cfSave').onclick=()=>{const o=cfgRead();if(o.prov=='custom'&&!o.base)return msg('自定义中转需要填写 Base URL',1);Object.assign(cfg,o);SV('wbCfg',cfg);render();cfgClose();toast('API 设置已保存在本机')};
-$('#cfClr').onclick=()=>{cfg.key='';$('#cfKey').value='';SV('wbCfg',cfg);render();msg('已从本机清除密钥')};
+$('#cfSave').onclick=()=>{const o=cfgRead();if(o.prov=='custom'&&!o.base)return msg('自定义中转需要填写 Base URL',1);if(!o.model){msg('请选择生图模型或手动填写模型 ID',1);$('#cfModelSelect').focus();return}Object.assign(cfg,o);SV('wbCfg',cfg);render();cfgClose();toast('API 设置已保存在本机')};
+$('#cfClr').onclick=()=>{cfg.key='';$('#cfKey').value='';for(const d of Object.values(cfgDrafts))d.key='';SV('wbCfg',cfg);resetModels();render();msg('已从本机清除密钥')};
 function msg(t,bad){const m=$('#cfMsg');m.textContent=t;m.className='fine '+(bad?'bad':'good')}
-$('#cfTest').onclick=async()=>{const o=cfgRead();if(!o.key)return msg('请先填写 API Key',1);if(o.prov=='custom'&&!o.base)return msg('请填写 Base URL',1);const old=Object.assign({},cfg);Object.assign(cfg,o);msg('正在连接…');
- try{const g=cfg.prov=='gemini',url=g?`${root()}/models/${encodeURIComponent(modelOf())}`:`${root()}/models`;const r=await call(url,{method:'GET',headers:auth()});const j=await r.json().catch(()=>null);
-  if(!r.ok){if(cfg.prov=='seedream'&&r.status==404)return msg('地址可达、密钥已被接受（方舟不提供模型列表接口，可直接生成测试）');throw await apiErr(r,j)}
-  if(g)msg(`连接成功：模型 ${j&&j.displayName||modelOf()} 可用`);else{const ids=(j&&j.data||[]).map(m=>m.id),has=ids.includes(modelOf());msg(`连接成功：共 ${ids.length} 个模型`+(ids.length?(has?`，包含 ${modelOf()}`:`，但未找到 ${modelOf()}（中转可能不列出，可直接尝试）`):''))}}
- catch(e){msg(nice(e),1)}finally{Object.assign(cfg,old)}};
+$('#cfTest').onclick=()=>loadModels(true);
 // ---------- 请求 ----------
-function auth(){return cfg.prov=='gemini'?{'x-goog-api-key':cfg.key}:{Authorization:'Bearer '+cfg.key}}
+function auth(c=cfg){return c.prov=='gemini'?{'x-goog-api-key':c.key}:{Authorization:'Bearer '+c.key}}
 const p2=n=>String(n).padStart(2,'0'),stamp=d=>`${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}-${p2(d.getHours())}${p2(d.getMinutes())}`;
 const OFF=/^(api\.openai\.com|generativelanguage\.googleapis\.com|ark\.[a-z0-9-]+\.(volces|bytepluses)\.com)$/;
-function call(url,o){let hn='';try{hn=new URL(url).hostname}catch(e){}const cu=cfg.prov=='custom'||!OFF.test(hn);if(!cfg.proxy&&!cu)return fetch(url,o);const h=new Headers(o.headers||{});h.set('x-target-url',url);if(cu)h.set('x-proxy-custom','1');return fetch('/api/proxy',Object.assign({},o,{headers:h}))}
+function call(url,o,c=cfg){let hn='';try{hn=new URL(url).hostname}catch(e){}const cu=c.prov=='custom'||!OFF.test(hn);if(!c.proxy&&!cu)return fetch(url,o);const h=new Headers(o.headers||{});h.set('x-target-url',url);if(cu)h.set('x-proxy-custom','1');return fetch('/api/proxy',Object.assign({},o,{headers:h}))}
 async function fetchResult(url){let r=await fetch(url).catch(()=>null);if(!r||!r.ok)r=await fetch('/api/proxy',{headers:{'x-target-url':url,'x-proxy-kind':'image'}}).catch(()=>null);if(r&&r.ok)return r.blob();const e=Error('');e.zh='结果图片无法在浏览器中下载，请直接打开：'+url;throw e}
 
 const SAFE_RE=/safety system|safety_violations|moderation_blocked|content_policy_violation|content policy|SensitiveContent|sensitive content|PROHIBITED_CONTENT|IMAGE_SAFETY|\bSAFETY\b|BLOCKLIST|SPII|blocked by|内容安全|敏感/i;
@@ -224,7 +290,7 @@ async function genOnce(imgs,prompt,sig,output){if(output.error)throw Error(outpu
   throw e}}
 // ---------- 进度 ----------
 let T0,tick,PR=0,done=0,total=1;function stage(t){$('#wbStage1').textContent=t}
-function busy(on){$('#wbBusy').hidden=!on;$('#wbGo').classList.toggle('run',on);if(on)$('#wbGo').innerHTML='<i class="ring"></i>生成中…';$('#wbGo').disabled=on;$('#wbAgain').disabled=on;renderOutput();clearInterval(tick);if(on){T0=Date.now();PR=.03;tick=setInterval(()=>{const s=(Date.now()-T0)/1e3,cap=(done+.95)/total;PR=Math.max(done/total,Math.min(cap,PR+(cap-PR)*.03));$('#wbProg').style.transform=`scaleX(${PR})`;$('#wbTime').textContent=`${Math.round(s)} 秒`+(total>1?` · 已完成 ${done} / ${total}`:'');},250)}else render()}
+function busy(on){$('#wbBusy').hidden=!on;$('#wbGo').classList.toggle('run',on);if(on)$('#wbGo').innerHTML='<i class="ring"></i>生成中…';$('#wbGo').disabled=on;$('#wbAgain').disabled=on;$$('#wbStyles [data-style]').forEach(b=>b.disabled=on);renderOutput();clearInterval(tick);if(on){T0=Date.now();PR=.03;tick=setInterval(()=>{const s=(Date.now()-T0)/1e3,cap=(done+.95)/total;PR=Math.max(done/total,Math.min(cap,PR+(cap-PR)*.03));$('#wbProg').style.transform=`scaleX(${PR})`;$('#wbTime').textContent=`${Math.round(s)} 秒`+(total>1?` · 已完成 ${done} / ${total}`:'');},250)}else render()}
 async function run(){if(W.busy)return;if(!cfg.key){toast('请先配置你的 API');return cfgOpen()}if(!isGen()&&!hasPerson())return toast('请先上传人物照片');if(!W.garments.length)return toast('请先选择服装');const output=outputChoice();if(output.error){errBox(Error(output.error));return $('#'+output.invalidField).focus()}
  const ac=new AbortController();W.busy=ac;$('#wbErr').hidden=true;$('#wbWarn').hidden=true;
  const n=+$('#wbN').value||1,sets=W.poses.length>1&&W.bm=='each'?W.poses.map(p=>[p]):[W.poses];const jobs=[];sets.forEach(s=>{for(let i=0;i<n;i++)jobs.push(s)});
@@ -257,10 +323,24 @@ function show(i,meta){const r=W.results[i];if(!r)return;{let d=$('#wbSentD');if(
  const R=$('#wbRes');R.hidden=W.results.length<2;R.innerHTML=W.results.map((x,j)=>`<button data-ri="${j}" class="${j==i?'on':''}"><img src="${U(x.after)}" alt="结果 ${j+1}"></button>`).join('')}
 $('#wbRes').onclick=e=>{const b=e.target.closest('[data-ri]');b&&show(+b.dataset.ri)};$('#wbCmpT').onclick=()=>{W.cmp=!W.cmp;show(W.ri)};
 const resultExt=r=>({'image/jpeg':'jpg','image/webp':'webp','image/png':'png'}[r.after.type]||'png');
+function downloadResult(r){if(!r)return;const l=document.createElement('a');l.href=U(r.after);l.download=`posewear-${r.mode=='gen'?'gen':'tryon'}-${stamp(new Date(r.t))}-${String(W.results.indexOf(r)+1||1).padStart(2,'0')}.${resultExt(r)}`;l.click()}
+let previewRecord,previewTrigger,previewOverflow,previewGesture;
+const preview=$('#wbPreview'),previewImage=$('#wbPreviewImg'),previewView=$('#wbPreviewView');
+function previewMeta(){if(!previewRecord)return;const w=previewRecord.width||previewImage.naturalWidth,h=previewRecord.height||previewImage.naturalHeight;$('#wbPreviewMeta').textContent=(w&&h?`原图 ${w}×${h} px · `:'')+previewRecord.model+' · 可切换原始大小查看细节'}
+function openPreview(trigger){const r=W.results[W.ri];if(!r||preview.open)return;previewRecord=r;previewTrigger=trigger||$('#wbPreviewOpen');previewOverflow=document.body.style.overflow;previewView.classList.remove('native');$('#wbPreviewZoom').textContent='原始大小';$('#wbPreviewZoom').setAttribute('aria-pressed','false');previewImage.src=U(r.after);previewMeta();preview.showModal();previewView.scrollTo(0,0);document.body.style.overflow='hidden'}
+previewImage.onload=previewMeta;
+$('#wbPreviewOpen').onclick=e=>openPreview(e.currentTarget);$('#wbPreviewX').onclick=()=>preview.close();$('#wbPreviewDl').onclick=()=>downloadResult(previewRecord);
+$('#wbPreviewZoom').onclick=()=>{const native=previewView.classList.toggle('native');$('#wbPreviewZoom').textContent=native?'适合窗口':'原始大小';$('#wbPreviewZoom').setAttribute('aria-pressed',String(native));previewView.scrollTo(0,0)};
+preview.addEventListener('close',()=>{document.body.style.overflow=previewOverflow||'';previewImage.removeAttribute('src');previewRecord=null;if(previewTrigger?.isConnected)previewTrigger.focus({preventScroll:true})});
+preview.addEventListener('click',e=>{if(e.target!=preview)return;const r=preview.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)preview.close()});
+$('#wbCmp').addEventListener('pointerdown',e=>{previewGesture={x:e.clientX,y:e.clientY,moved:false}});
+$('#wbCmp').addEventListener('pointermove',e=>{if(previewGesture&&Math.hypot(e.clientX-previewGesture.x,e.clientY-previewGesture.y)>6)previewGesture.moved=true});
+$('#wbCmp').addEventListener('click',()=>{if(!previewGesture?.moved)openPreview($('#wbAfter'));previewGesture=null});
+$('#wbAfter').addEventListener('keydown',e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();openPreview(e.currentTarget)}});
 $('#wbZip').onclick=async()=>{if(!window.makeZip)return;const ts=stamp(new Date());const fs=W.results.map((r,i)=>({name:`posewear-${r.mode=='gen'?'gen':'tryon'}-${ts}-${String(i+1).padStart(2,'0')}.${resultExt(r)}`,blob:r.after}));window.X.dl(await makeZip(fs),`posewear-tryon-${ts}.zip`);toast(`已打包 ${fs.length} 张`)};
 $('#cfExp').onclick=async()=>{const withKey=await window.PWAccess.choose('导出 API 设置','包含密钥的文件可被持有者用于调用你的模型服务，请仅保存在可信设备。');if(withKey===null)return;const o={...cfg};if(!withKey)delete o.key;window.X.dl(new Blob([JSON.stringify({app:'衣姿 PoseWear',type:'api-config',cfg:o},null,2)],{type:'application/json'}),'衣姿-API设置.json');msg('已导出设置'+(withKey?'（含密钥，请妥善保管）':'（不含密钥）'))};
 $('#cfImp').onclick=()=>$('#cfImpF').click();$('#cfImpF').onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const o=j.cfg||j;if(!o.prov)throw 0;Object.assign(cfg,o);SV('wbCfg',cfg);cfgFill();render();msg('已导入设置')}catch(err){msg('导入失败：文件格式不正确',1)}e.target.value=''};
-$('#wbDl').onclick=()=>{const r=W.results[W.ri];if(!r)return;const l=document.createElement('a');l.href=U(r.after);l.download=`posewear-${r.mode=='gen'?'gen':'tryon'}-${stamp(new Date(r.t))}-${String(W.ri+1).padStart(2,'0')}.${resultExt(r)}`;l.click()};
+$('#wbDl').onclick=()=>downloadResult(W.results[W.ri]);
 $('#wbUse').onclick=async()=>{const r=W.results[W.ri];if(!r)return;const x=await toJpeg(U(r.after),1536);W.persons=[{blob:x.blob,url:URL.createObjectURL(x.blob),w:x.w,h:x.h}];W.mode='tryon';render();toast('已将结果设为新的人物照片')};
 function setX(x){$('#wbCmp').style.setProperty('--x',x+'%');$('#wbRange').value=x}$('#wbRange').oninput=e=>setX(e.target.value);
 // ---------- IndexedDB ----------

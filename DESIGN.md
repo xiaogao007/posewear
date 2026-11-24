@@ -38,6 +38,10 @@ components:
 ## Overview
 PoseWear is a Chinese-first reference library and try-on workbench. Preserve its white/grey gallery, rounded images, quiet utilities, and red creative actions. Account tools belong in a neutral more menu; content classification stays explicit within permission-approved preferences.
 
+API settings use the existing native model select with a nearby refresh action and localized live status. Distinguish models returned by the current connection from unverified presets and a preserved unlisted model. Manual model IDs remain a separate, explicitly selected field. The generated-image preview uses the same surface/text tokens in a large native modal with a contained, scrollable original-size view; avoid changing the gallery lightbox or the workbench comparison layout.
+
+Workbench style choices support youthful, clear, natural everyday outfit photography: daily, commute, weekend street, date, collegiate mood and lookbook. Use six compact two-column choices with a visible one-line explanation, neutral selected fill and the existing focus treatment. Keep original-photo, white-background, film-color and illustration styles in a native disclosure. Existing saved style IDs remain valid. Style describes light, setting and color treatment; the reference identity and outfit remain authoritative.
+
 ## Colors
 Runtime CSS variables in `src/style.css` are canonical. Documented colors map to --bg, --sf, --tx, --tx2, --ac, --line2. Account surfaces consume these variables and automatically follow the existing dark overrides. No independent account palette.
 

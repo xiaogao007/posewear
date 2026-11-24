@@ -30,6 +30,7 @@ const server=http.createServer((req,res)=>{
   await page.route(/api\.openai\.com|generativelanguage\.googleapis\.com|\/api\/proxy/,async route=>{
    const request=route.request();
    if(request.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});
+   if(request.method()==='GET')return route.fulfill({status:200,headers:{'content-type':'application/json','access-control-allow-origin':'*'},body:JSON.stringify({data:[{id:model}],models:[{name:'models/'+model,supportedGenerationMethods:['generateContent']}]})});
    let body;
    if((request.headers()['content-type']||'').includes('multipart/form-data')){
     const form=await new Response(request.postDataBuffer(),{headers:{'content-type':request.headers()['content-type']}}).formData();
@@ -42,7 +43,7 @@ const server=http.createServer((req,res)=>{
    return route.fulfill({status:next?.status||200,headers:{'content-type':'application/json','access-control-allow-origin':'*'},body:JSON.stringify(next?.body||(gemini?{candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:state.image.toString('base64')}}]}}]}:{data:[{b64_json:state.image.toString('base64')}]}))}).catch(()=>{});
   });
   await page.addInitScript(({prov,model,options})=>{
-   if(!sessionStorage.resolutionFixture){sessionStorage.resolutionFixture='1';localStorage.clear();localStorage.setItem('introX','1');localStorage.setItem('theme',options.dark?'dark':'light');localStorage.setItem('wbCfg',JSON.stringify({prov,model,key:'fixture-only',base:prov==='custom'?'https://relay.example.test/v1':'',proto:options.proto||'edits',field:'image[]',proxy:prov==='seedream'}));}
+   if(!sessionStorage.resolutionFixture){sessionStorage.resolutionFixture='1';localStorage.clear();localStorage.setItem('introX','1');localStorage.setItem('theme',options.dark?'dark':'light');if(options.style)localStorage.setItem('wbStyle',JSON.stringify(options.style));localStorage.setItem('wbCfg',JSON.stringify({prov,model,key:'fixture-only',base:prov==='custom'?'https://relay.example.test/v1':'',proto:options.proto||'edits',field:'image[]',proxy:prov==='seedream'}));}
   },{prov,model,options});
   await page.goto(url+'/#studio');await page.waitForFunction(()=>window.WB&&document.querySelector('#wbResolution').options.length);
   async function uploads(){await page.setInputFiles('#wbFile',path.join(__dirname,'fixtures/person.png'));await page.setInputFiles('#wbGFile',path.join(__dirname,'fixtures/mk1.png'));await page.waitForFunction(()=>WB._W.persons.length&&WB._W.garments.length);}
@@ -51,8 +52,26 @@ const server=http.createServer((req,res)=>{
  const choose=async(page,ar,tier='standard',quality)=>{await page.selectOption('#wbAR',ar);await page.selectOption('#wbResolution',tier);if(quality)await page.selectOption('#wbQuality',quality);};
  const go=async page=>{await page.click('#wbGo');await page.waitForFunction(()=>!WB._W.busy);};
  const failure=(message,status=400)=>({status,body:{error:{message}}});
- const switchModel=async(page,model)=>{await page.click('#wbCfg');await page.fill('#cfModel',model);await page.click('#cfSave');};
+ const switchModel=async(page,model)=>{await page.click('#wbCfg');await page.selectOption('#cfModelSelect','__manual__');await page.fill('#cfModel',model);await page.click('#cfSave');};
  try{
+  {
+   const {context,page,state}=await setup();assert.equal(await page.getAttribute('[data-style=daily]','aria-pressed'),'true');assert.equal(await page.locator('#wbStylePrimary button').count(),6);assert.equal(await page.locator('#wbStyleMore').evaluate(e=>e.open),false);
+   assert.match(await page.textContent('#wbStyleHelp'),/保留原背景时仅应用色调/);assert.ok(!(await page.inputValue('#wbPrompt')).includes('uncluttered cream or light-grey interior'));
+   await page.locator('.adv > summary').click();await page.uncheck('#wbKeepBg');
+   const scenes={daily:['window daylight','窗边自然光'],commute:['pale stone architecture','石材建筑'],street:['city corner','安静街角'],date:['cafe terrace','咖啡店露台'],campus:['bookshop exterior','书店外'],studio:['studio backdrop','影棚布景']};
+   for(const [id,[en,zh]] of Object.entries(scenes)){
+    await page.click('[data-style='+id+']');assert.equal(await page.evaluate(()=>document.activeElement.dataset.style),id);assert.equal(await page.locator('#wbStyles [aria-pressed=true]').count(),1);
+    for(const lang of ['en','zh']){await page.click('[data-pl='+lang+']');const prompt=await page.inputValue('#wbPrompt');assert.ok(prompt.includes(lang==='en'?en:zh));assert.match(prompt,lang==='en'?/reference identity, outfit, accessories or body proportions/:/不改变参考人物身份、服装、配饰和身体比例/);assert.match(prompt,lang==='en'?/no soft focus/:/不柔焦/);await go(page);assert.equal(state.hits.at(-1).body.model,'gpt-image-2');assert.ok(state.hits.at(-1).body.prompt.includes(lang==='en'?en:zh));}
+   }
+   await page.click('[data-style=commute]');await page.click('[data-mode=gen]');assert.equal(await page.getAttribute('[data-style=commute]','aria-pressed'),'true');await page.click('[data-mode=tryon]');await page.reload();await page.waitForFunction(()=>window.WB);assert.equal(await page.getAttribute('[data-style=commute]','aria-pressed'),'true');
+   passed('six outfit photography styles change actual bilingual requests, preserve identity/garments, respect retained backgrounds, keep keyboard focus and persist across modes/reload');await context.close();
+  }
+  {
+   const {context,page,state}=await setup('openai','gpt-image-2',{style:'anime'});assert.equal(await page.locator('#wbStyleMore').evaluate(e=>e.open),true);assert.equal(await page.getAttribute('[data-style=anime]','aria-pressed'),'true');assert.match(await page.textContent('#wbStyleHelp'),/动漫插画/);
+   await page.locator('.adv > summary').click();await page.fill('#wbPrompt','my manually edited outfit prompt');await page.click('[data-style=daily]');assert.equal(await page.inputValue('#wbPrompt'),'my manually edited outfit prompt');assert.match(await page.textContent('#wbStyleHelp'),/手动修改/);await page.click('#wbReP');assert.match(await page.inputValue('#wbPrompt'),/fresh true-to-life colors/);
+   state.responses=[{delay:1000}];await page.click('#wbGo');await page.waitForFunction(()=>!!WB._W.busy);assert.equal(await page.locator('#wbStyles button:disabled').count(),10);await page.click('#wbStop');await page.waitForFunction(()=>!WB._W.busy);assert.equal(await page.locator('#wbStyles button:disabled').count(),0);
+   passed('saved legacy styles remain selected; manual prompt edits are preserved with recovery guidance; style choices freeze during generation');await context.close();
+  }
   {
    const {context,page,state,uploads}=await setup();
    assert.equal(await page.inputValue('#wbResolution'),'standard');assert.equal(await page.inputValue('#wbQuality'),'medium');
@@ -70,6 +89,17 @@ const server=http.createServer((req,res)=>{
    assert.equal(state.hits.at(-1).body.size,'1536x2048');assert.equal(state.hits.at(-1).body['image[]'],'[file]');
    assert.match(await page.textContent('#wbDimensions'),/实际返回：1536×2048 px.*请求：1536×2048.*质量：high/);
    assert.equal(await page.locator('#wbDimensions').evaluate(e=>e.classList.contains('mismatch')),false);
+   await page.click('#wbPreviewOpen');await page.waitForFunction(()=>document.querySelector('#wbPreview').open&&document.querySelector('#wbPreviewImg').naturalWidth===1536);
+   assert.equal(await page.getAttribute('#wbPreviewImg','src'),await page.getAttribute('#wbAfter','src'));assert.match(await page.textContent('#wbPreviewMeta'),/1536×2048/);
+   await page.click('#wbPreviewZoom');assert.equal(await page.locator('#wbPreviewImg').evaluate(e=>e.getBoundingClientRect().width),1536);assert.equal(await page.getAttribute('#wbPreviewZoom','aria-pressed'),'true');
+   const [previewDownload]=await Promise.all([page.waitForEvent('download'),page.click('#wbPreviewDl')]);assert.deepEqual(fs.readFileSync(await previewDownload.path()),state.image);
+   await page.focus('#wbPreviewX');await page.keyboard.press('Tab');assert.ok(await page.evaluate(()=>document.querySelector('#wbPreview').contains(document.activeElement)));await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.querySelector('#wbPreview').open);assert.equal(await page.evaluate(()=>document.activeElement.id),'wbPreviewOpen');
+   await page.click('#wbCmpT');await page.click('#wbAfter');assert.equal(await page.locator('#wbPreview').evaluate(e=>e.open),true);await page.click('#wbPreviewX');
+   await page.focus('#wbAfter');await page.keyboard.press('Enter');assert.equal(await page.locator('#wbPreview').evaluate(e=>e.open),true);await page.keyboard.press('Escape');
+   await page.click('#wbPreviewOpen');await page.mouse.click(2,2);assert.equal(await page.locator('#wbPreview').evaluate(e=>e.open),false);
+   await page.click('#wbCmpT');const range=await page.locator('#wbRange').boundingBox();await page.mouse.move(range.x+range.width*.3,range.y+range.height*.5);await page.mouse.down();await page.mouse.move(range.x+range.width*.7,range.y+range.height*.5,{steps:8});await page.mouse.up();assert.equal(await page.locator('#wbPreview').evaluate(e=>e.open),false);assert.ok(+await page.inputValue('#wbRange')>60);
+   await page.click('#wbRange',{position:{x:range.width*.75,y:range.height*.5}});assert.equal(await page.locator('#wbPreview').evaluate(e=>e.open),true);await page.keyboard.press('Escape');
+   passed('result preview uses original bytes, native-size scrolling, exact download, keyboard/Escape/focus return and preserves comparison dragging');
    const [download]=await Promise.all([page.waitForEvent('download'),page.click('#wbDl')]);assert.deepEqual(fs.readFileSync(await download.path()),state.image);
    await page.selectOption('#wbN','2');await go(page);assert.equal(await page.locator('#wbRes button').count(),2);
    const [zip]=await Promise.all([page.waitForEvent('download'),page.click('#wbZip')]);const zipBytes=fs.readFileSync(await zip.path());
@@ -80,6 +110,7 @@ const server=http.createServer((req,res)=>{
    await page.reload();await page.waitForFunction(()=>window.WB&&document.querySelector('#wbHist button'));
    assert.equal(await page.inputValue('#wbAR'),'3:4');assert.equal(await page.inputValue('#wbResolution'),'hd');assert.equal(await page.inputValue('#wbQuality'),'high');
    await page.locator('#wbHist [data-t]').first().click();assert.match(await page.textContent('#wbDimensions'),/1536×2048/);await uploads();await page.selectOption('#wbN','1');
+   await page.click('#wbPreviewOpen');assert.match(await page.textContent('#wbPreviewMeta'),/1536×2048/);await page.keyboard.press('Escape');
    state.image=fixture;await go(page);assert.match(await page.textContent('#wbDimensions'),/尺寸与请求不符/);
    passed('aspect, tier, quality and history metadata persist; smaller returned images are explicitly flagged');
    await page.screenshot({path:path.join(artifacts,'desktop.png')});
@@ -144,10 +175,13 @@ const server=http.createServer((req,res)=>{
   }
   {
    const {context,page}=await setup('openai','gpt-image-2',{viewport:{width:390,height:844},dark:true});await choose(page,'3:4','ultra','high');
+   await page.locator('#wbStyles').scrollIntoViewIfNeeded();assert.equal(await page.locator('#wbStylePrimary').evaluate(e=>e.scrollWidth<=e.clientWidth),true);await page.screenshot({path:path.join(artifacts,'outfit-styles-mobile-dark.png')});
    await page.locator('#wbResolution').focus();await page.keyboard.press('ArrowUp');assert.equal(await page.inputValue('#wbResolution'),'hd');
    await page.locator('#wbResolution').scrollIntoViewIfNeeded();await page.locator('#wbResolution').click();await page.screenshot({path:path.join(artifacts,'mobile-select-dark.png')});await page.keyboard.press('Escape');await page.keyboard.press('Tab');assert.equal(await page.locator('#wbQuality').evaluate(e=>e===document.activeElement),true);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await go(page);await page.locator('#wbDimensions').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(artifacts,'mobile-result-dark.png')});
+   await page.click('#wbPreviewOpen');await page.waitForFunction(()=>document.querySelector('#wbPreviewImg').naturalWidth>0);assert.ok(await page.locator('#wbPreview').evaluate(e=>e.scrollWidth<=innerWidth));
+   await page.click('#wbPreviewZoom');assert.equal(await page.locator('#wbPreviewImg').evaluate(e=>e.getBoundingClientRect().width===e.naturalWidth),true);await page.screenshot({path:path.join(artifacts,'mobile-preview-dark.png')});await page.click('#wbPreviewX');
    // Legacy IndexedDB records lack output metadata; dimensions must still come from the actual blob.
    await page.evaluate(()=>{delete WB._W.results[0].width;delete WB._W.results[0].height;delete WB._W.results[0].output;document.querySelector('#wbCmpT').click();});
    await page.waitForFunction(()=>document.querySelector('#wbDimensions').textContent.includes('实际返回：')&&!document.querySelector('#wbDimensions').textContent.includes('尺寸未读取'));
